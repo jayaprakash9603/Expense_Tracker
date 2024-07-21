@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>One-Time Editable Input</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #212529;
+        margin: 0;
+        padding: 20px;
+      }
+
+      input {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        color: #212529;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+      }
+
+      input[readonly] {
+        background-color: #e9ecef;
+        /* cursor: not-allowed; */
+      }
+    </style>
+  </head>
+  <body>
+    <input
+      type="text"
+      id="oneTimeEditableInput"
+      placeholder="Enter text here"
+    />
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("oneTimeEditableInput");
+        let edited = false;
+
+        input.addEventListener("focus", () => {
+          if (edited) {
+            input.blur(); // Remove focus if already edited
+          }
+        });
+        input.addEventListener("change", () => {
+          if (!edited) {
+            edited = true;
+            input.setAttribute("readonly", "readonly");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

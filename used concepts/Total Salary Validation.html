@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Double Click to Edit Input</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #212529;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .input-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+
+      .input-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+
+      input {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        color: #212529;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        border-radius: 4px;
+        width: 300px;
+        box-sizing: border-box;
+        margin-right: 10px;
+      }
+
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: pointer; /* Change cursor to pointer (hand) */
+      }
+
+      button {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .error {
+        color: red;
+        margin-top: 5px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-container">
+      <div class="input-row">
+        <input
+          type="text"
+          id="editableInput"
+          value="Double-click to edit me"
+          readonly
+        />
+        <button id="saveButton" style="display: none">Save</button>
+      </div>
+      <span id="errorMessage" class="error">Please enter a valid number</span>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("editableInput");
+        const saveButton = document.getElementById("saveButton");
+        const errorMessage = document.getElementById("errorMessage");
+
+        input.addEventListener("dblclick", () => {
+          input.removeAttribute("readonly");
+          input.focus();
+          saveButton.style.display = "inline";
+          errorMessage.style.display = "none";
+        });
+
+        saveButton.addEventListener("click", () => {
+          let inputValue = input.value.trim();
+          if (isNaN(inputValue) || inputValue === "") {
+            errorMessage.style.display = "block";
+          } else {
+            inputValue = parseInt(inputValue, 10);
+            input.value = inputValue;
+            input.setAttribute("readonly", "readonly");
+            saveButton.style.display = "none";
+            errorMessage.style.display = "none";
+            clicked = true;
+          }
+        });
+
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            saveButton.click();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

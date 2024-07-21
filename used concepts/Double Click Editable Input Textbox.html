@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Double Click to Edit Input</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #212529;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .input-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      input {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        color: #212529;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        border-radius: 4px;
+        width: 300px;
+        box-sizing: border-box;
+        margin-right: 10px;
+      }
+
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: pointer;
+      }
+
+      button {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-container">
+      <input
+        type="text"
+        id="editableInput"
+        value="Double-click to edit me"
+        readonly
+      />
+      <button id="saveButton" style="display: none">Save</button>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("editableInput");
+        const saveButton = document.getElementById("saveButton");
+
+        input.addEventListener("dblclick", () => {
+          input.removeAttribute("readonly");
+          input.focus();
+          saveButton.style.display = "inline";
+        });
+
+        saveButton.addEventListener("click", () => {
+          input.setAttribute("readonly", "readonly");
+          saveButton.style.display = "none";
+        });
+
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            saveButton.click();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
