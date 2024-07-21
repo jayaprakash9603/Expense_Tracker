@@ -38,6 +38,55 @@
       .cell-content {
         overflow: auto; /* Add scrollbar if content overflows */
       }
+      /* Modal styles */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0); /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+        padding-top: 60px;
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn {
+        background-color: #4caf50; /* Green */
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-danger {
+        background-color: #f44336; /* Red */
+      }
     </style>
   </head>
   <body>
@@ -58,7 +107,7 @@
       >
     </div>
 
-    <button id="showAllReasonsButton">Show All Reasons</button>
+    <button id="showAllReasonsButton" class="btn">Show All Reasons</button>
 
     <div class="table-container">
       <table id="expensesTable">
@@ -74,28 +123,38 @@
       </table>
     </div>
 
-    <div class="table-container">
-      <table id="reasonDetailsTable" style="display: none">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Reason - Amount</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <!-- Modal for reasons -->
+    <div id="reasonModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Reasons for Date</h2>
+        <table id="reasonDetailsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Reason - Amount</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="table-container">
-      <table id="allReasonsTable" style="display: none">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Reason - Amount</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <!-- Modal for all reasons -->
+    <div id="allReasonsModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>All Reasons</h2>
+        <table id="allReasonsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Reason - Amount</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <script>
@@ -216,29 +275,34 @@
 
           dateCell.textContent = dateInput;
           totalCell.textContent =
-            typeSelect === "loss"
-              ? -parseFloat(amountInput)
-              : parseFloat(amountInput);
+            parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
 
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkCell.appendChild(checkbox);
+          const checkBox = document.createElement("input");
+          checkBox.type = "checkbox";
+          checkBox.classList.add("cell-content"); // Add class to handle overflow
+          checkCell.appendChild(checkBox);
 
           const reasonButton = document.createElement("button");
           reasonButton.textContent = "Reason";
-          reasonButton.onclick = () => showReasons(dateInput);
+          reasonButton.classList.add("btn");
           actionsCell.appendChild(reasonButton);
 
-          // Initialize reasons array
-          reasonsByDate[dateInput] = [`${reasonInput}-${amountInput}`];
+          reasonButton.addEventListener("dblclick", () => {
+            showReasons(dateInput);
+          });
         }
+
+        document.getElementById("amountInput").value = "";
+        document.getElementById("reasonInput").value = "";
       }
 
       function showReasons(date) {
-        const reasonTable = document.getElementById("reasonDetailsTable");
-        const reasonTableBody = reasonTable.getElementsByTagName("tbody")[0];
+        const reasonModal = document.getElementById("reasonModal");
+        const reasonTableBody = document
+          .getElementById("reasonDetailsTable")
+          .getElementsByTagName("tbody")[0];
 
-        reasonTableBody.innerHTML = ""; // Clear previous reasons
+        reasonTableBody.innerHTML = ""; // Clear existing data
 
         if (reasonsByDate[date]) {
           reasonsByDate[date].forEach((detail) => {
@@ -250,17 +314,18 @@
             dateCell.textContent = date;
             reasonCell.textContent = `${reason}-${amount}`;
           });
-
-          reasonTable.style.display = "table";
         }
+
+        reasonModal.style.display = "block";
       }
 
       function showAllReasons() {
-        const allReasonsTable = document.getElementById("allReasonsTable");
-        const allReasonsTableBody =
-          allReasonsTable.getElementsByTagName("tbody")[0];
+        const allReasonsModal = document.getElementById("allReasonsModal");
+        const allReasonsTableBody = document
+          .getElementById("allReasonsTable")
+          .getElementsByTagName("tbody")[0];
 
-        allReasonsTableBody.innerHTML = ""; // Clear previous reasons
+        allReasonsTableBody.innerHTML = ""; // Clear existing data
 
         Object.keys(reasonsByDate).forEach((date) => {
           reasonsByDate[date].forEach((detail) => {
@@ -274,9 +339,27 @@
           });
         });
 
-        allReasonsTable.style.display = "table";
+        allReasonsModal.style.display = "block";
       }
 
+      // Modal functionality
+      function setupModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const span = modal.querySelector(".close");
+
+        span.onclick = function () {
+          modal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        };
+      }
+
+      setupModal("reasonModal");
+      setupModal("allReasonsModal");
       document
         .getElementById("showAllReasonsButton")
         .addEventListener("click", showAllReasons);
