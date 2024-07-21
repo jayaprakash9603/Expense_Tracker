@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <style>
+      .error {
+        color: red;
+        display: none;
+      }
+      .table-container {
+        width: 100%;
+        max-width: 800px;
+        height: 300px; /* Fixed height for the container */
+        margin-top: 20px;
+        border: 1px solid black;
+        overflow: auto; /* Add scrollbar if needed for the container */
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed; /* Ensure fixed table layout */
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: left;
+        overflow: hidden;
+        word-wrap: break-word; /* Ensure text wraps and does not overflow */
+        white-space: normal; /* Allow text to wrap to the next line */
+        height: 50px; /* Set a fixed height for cells */
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .cell-content {
+        overflow: auto; /* Add scrollbar if content overflows */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-container">
+      <div class="input-row">
+        <label for="date">Date:</label>
+        <input type="date" id="date" />
+        <input type="number" id="amountInput" placeholder="Amount" />
+        <input type="text" id="reasonInput" placeholder="Reason" />
+        <select id="typeSelect">
+          <option value="gain">Gain</option>
+          <option value="loss">Loss</option>
+        </select>
+        <button id="addExpenseButton">Add Expense</button>
+      </div>
+      <span id="errorMessage" class="error"
+        >Please enter a positive value for gain.</span
+      >
+    </div>
+
+    <div class="table-container">
+      <table id="expensesTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Check</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <table id="reasonDetailsTable" style="display: none">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reason - Amount</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script>
+      function getLastWorkingDayOfMonth(year, month) {
+        const lastDay = new Date(year, month + 1, 0); // Last day of the month
+        const dayOfWeek = lastDay.getDay();
+
+        if (dayOfWeek === 6) {
+          lastDay.setDate(lastDay.getDate() - 1); // If Saturday, move to Friday
+        } else if (dayOfWeek === 0) {
+          lastDay.setDate(lastDay.getDate() - 2); // If Sunday, move to Friday
+        }
+
+        return lastDay;
+      }
+
+      function isSalaryDate(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const lastWorkingDay = getLastWorkingDayOfMonth(year, month);
+
+        return date.toDateString() === lastWorkingDay.toDateString();
+      }
+
+      // Set default date to today and check if it's the salary date
+      document.addEventListener("DOMContentLoaded", () => {
+        const dateInput = document.getElementById("date");
+        const typeSelect = document.getElementById("typeSelect");
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.value = today;
+
+        const todayDate = new Date(today);
+        if (isSalaryDate(todayDate)) {
+          typeSelect.value = "gain";
+        } else {
+          typeSelect.value = "loss";
+        }
+      });
+
+      // Check if selected date is salary date
+      document.getElementById("date").addEventListener("change", (event) => {
+        const selectedDate = new Date(event.target.value);
+        const typeSelect = document.getElementById("typeSelect");
+
+        if (isSalaryDate(selectedDate)) {
+          typeSelect.value = "gain";
+        } else {
+          typeSelect.value = "loss";
+        }
+      });
+
+      document
+        .getElementById("addExpenseButton")
+        .addEventListener("click", () => {
+          const result = validateExpense();
+          if (result) {
+            addExpenseToTable();
+            console.log("Expense added successfully.");
+          } else {
+            console.log("Failed to add expense.");
+          }
+        });
+
+      function validateExpense() {
+        const amountInput = document.getElementById("amountInput");
+        const typeSelect = document.getElementById("typeSelect");
+        const errorMessage = document.getElementById("errorMessage");
+
+        const amountValue = parseFloat(amountInput.value.trim());
+        const selectedType = typeSelect.value;
+
+        if (selectedType === "gain" && amountValue < 0) {
+          errorMessage.style.display = "inline";
+          amountInput.focus();
+          return false; // Failure
+        } else {
+          errorMessage.style.display = "none";
+          return true; // Success
+        }
+      }
+
+      function addExpenseToTable() {
+        const dateInput = document.getElementById("date").value;
+        const amountInput = document.getElementById("amountInput").value;
+        const reasonInput = document.getElementById("reasonInput").value;
+        const typeSelect = document.getElementById("typeSelect").value;
+
+        const tableBody = document
+          .getElementById("expensesTable")
+          .getElementsByTagName("tbody")[0];
+        let existingRow = Array.from(tableBody.rows).find(
+          (row) => row.cells[0].textContent === dateInput
+        );
+
+        if (existingRow) {
+          let totalCell = existingRow.cells[1];
+          let currentTotal = parseFloat(totalCell.textContent);
+          let newTotal =
+            currentTotal +
+            parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
+          totalCell.textContent = newTotal;
+
+          existingRow.dataset.details += `, ${reasonInput}-${amountInput}`;
+        } else {
+          const newRow = tableBody.insertRow();
+          newRow.dataset.details = `${reasonInput}-${amountInput}`;
+
+          const dateCell = newRow.insertCell(0);
+          const totalCell = newRow.insertCell(1);
+          const checkCell = newRow.insertCell(2);
+          const actionsCell = newRow.insertCell(3);
+
+          dateCell.textContent = dateInput;
+          totalCell.textContent =
+            typeSelect === "loss"
+              ? -parseFloat(amountInput)
+              : parseFloat(amountInput);
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkCell.appendChild(checkbox);
+
+          const reasonButton = document.createElement("button");
+          reasonButton.textContent = "Reason";
+          reasonButton.onclick = () => showReasons(dateInput);
+          actionsCell.appendChild(reasonButton);
+        }
+      }
+
+      function showReasons(date) {
+        const reasonTable = document.getElementById("reasonDetailsTable");
+        const reasonTableBody = reasonTable.getElementsByTagName("tbody")[0];
+
+        reasonTableBody.innerHTML = ""; // Clear previous reasons
+        const expensesTableRows = Array.from(
+          document.getElementById("expensesTable").getElementsByTagName("tbody")
+            .rows
+        );
+
+        expensesTableRows.forEach((row) => {
+          if (row.cells[0].textContent === date) {
+            const details = row.dataset.details;
+            const detailsArray = details.split(", ");
+
+            detailsArray.forEach((detail) => {
+              const [reason, amount] = detail.split("-");
+              const newRow = reasonTableBody.insertRow();
+              const dateCell = newRow.insertCell(0);
+              const reasonCell = newRow.insertCell(1);
+
+              dateCell.textContent = date;
+              reasonCell.textContent = `${reason}-${amount}`;
+            });
+          }
+        });
+
+        reasonTable.style.display = "table";
+      }
+
+      // Event listener to handle row clicks and toggle display of reason details
+      document
+        .getElementById("expensesTable")
+        .addEventListener("click", (event) => {
+          const target = event.target;
+
+          if (target.tagName === "BUTTON" && target.textContent === "Reason") {
+            const date = target.closest("tr").cells[0].textContent;
+            showReasons(date);
+          }
+        });
+    </script>
+  </body>
+</html>
