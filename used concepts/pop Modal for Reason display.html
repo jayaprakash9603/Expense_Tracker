@@ -94,17 +94,15 @@
       <div class="input-row">
         <label for="date">Date:</label>
         <input type="date" id="date" />
-        <input type="number" id="amountInput" placeholder="Amount" />
+        <input type="number" id="amountInput" placeholder="Amount" required />
         <input type="text" id="reasonInput" placeholder="Reason" />
         <select id="typeSelect">
           <option value="gain">Gain</option>
           <option value="loss">Loss</option>
         </select>
-        <button id="addExpenseButton">Add Expense</button>
+        <button id="addExpenseButton" class="btn">Add Expense</button>
       </div>
-      <span id="errorMessage" class="error"
-        >Please enter a positive value for gain.</span
-      >
+      <span id="errorMessage" class="error">Amount cannot be empty.</span>
     </div>
 
     <button id="showAllReasonsButton" class="btn">Show All Reasons</button>
@@ -228,7 +226,13 @@
         const amountValue = parseFloat(amountInput.value.trim());
         const selectedType = typeSelect.value;
 
-        if (selectedType === "gain" && amountValue < 0) {
+        if (isNaN(amountValue) || amountValue === "") {
+          errorMessage.textContent = "Amount cannot be empty.";
+          errorMessage.style.display = "inline";
+          amountInput.focus();
+          return false; // Failure
+        } else if (selectedType === "gain" && amountValue < 0) {
+          errorMessage.textContent = "Please enter a positive value for gain.";
           errorMessage.style.display = "inline";
           amountInput.focus();
           return false; // Failure
