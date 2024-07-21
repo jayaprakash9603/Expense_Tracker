@@ -67,33 +67,68 @@
     </style>
   </head>
   <body>
-    <div class="input-container">
-      <div class="input-row">
-        <input
-          type="text"
-          id="editableInput"
-          value="Double-click to edit me"
-          readonly
-        />
-        <button id="saveButton" style="display: none">Save</button>
-      </div>
-      <span id="errorMessage" class="error">Please enter a valid number</span>
-    </div>
-
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const input = document.getElementById("editableInput");
-        const saveButton = document.getElementById("saveButton");
-        const errorMessage = document.getElementById("errorMessage");
+        function createInputContainer() {
+          // Create the container div
+          const container = document.createElement("div");
+          container.classList.add("input-container");
 
-        input.addEventListener("dblclick", () => {
+          // Create the row div
+          const row = document.createElement("div");
+          row.classList.add("input-row");
+
+          // Create the input field
+          const input = document.createElement("input");
+          input.type = "text";
+          input.id = "editableInput";
+          input.value = "";
+          input.setAttribute("readonly", true);
+
+          // Create the save button
+          const saveButton = document.createElement("button");
+          saveButton.id = "saveButton";
+          saveButton.style.display = "none";
+          saveButton.textContent = "Save";
+
+          // Append input and button to the row div
+          row.appendChild(input);
+          row.appendChild(saveButton);
+
+          // Create the error message span
+          const errorMessage = document.createElement("span");
+          errorMessage.id = "errorMessage";
+          errorMessage.classList.add("error");
+          errorMessage.textContent = "Please enter a valid number";
+
+          // Append row and error message to the container div
+          container.appendChild(row);
+          container.appendChild(errorMessage);
+
+          // Append the container to the body or any other parent element
+          document.body.appendChild(container);
+
+          // Add event listeners for input and save button
+          input.addEventListener("dblclick", enableEditing);
+          saveButton.addEventListener("click", validateAndSaveInput);
+        }
+
+        function enableEditing() {
+          const input = document.getElementById("editableInput");
+          const saveButton = document.getElementById("saveButton");
+          const errorMessage = document.getElementById("errorMessage");
+
           input.removeAttribute("readonly");
           input.focus();
           saveButton.style.display = "inline";
           errorMessage.style.display = "none";
-        });
+        }
 
-        saveButton.addEventListener("click", () => {
+        function validateAndSaveInput() {
+          const input = document.getElementById("editableInput");
+          const saveButton = document.getElementById("saveButton");
+          const errorMessage = document.getElementById("errorMessage");
+
           let inputValue = input.value.trim();
           if (isNaN(inputValue) || inputValue === "") {
             errorMessage.style.display = "block";
@@ -103,15 +138,11 @@
             input.setAttribute("readonly", "readonly");
             saveButton.style.display = "none";
             errorMessage.style.display = "none";
-            clicked = true;
           }
-        });
+        }
 
-        input.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            saveButton.click();
-          }
-        });
+        // Call the function to create and add the input container
+        createInputContainer();
       });
     </script>
   </body>
