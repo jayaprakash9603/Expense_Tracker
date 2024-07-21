@@ -8,7 +8,20 @@
   </head>
   <body>
     <div class="container">
-      <h1>Monthly Expense Tracker</h1>
+      <div class="header-section">
+        <div class="input-container">
+          <div class="input-row">
+            <h1>Monthly Expense Tracker</h1>
+            <input type="number" id="editableInput" value="0" readonly />
+            <button id="saveButton" style="display: none">Save</button>
+            <!-- <button id="saveButton">Save</button> -->
+          </div>
+          <span id="errorMessage" class="error"
+            >Please enter a valid number</span
+          >
+        </div>
+      </div>
+
       <div class="input-section">
         <label for="date">Date:</label>
         <input type="date" id="date" />
@@ -18,8 +31,8 @@
 
         <label for="type">Type:</label>
         <select id="type">
-          <option value="loss">Loss</option>
           <option value="gain">Gain</option>
+          <option value="loss">Loss</option>
         </select>
 
         <label for="paymentMethod">Payment Method:</label>

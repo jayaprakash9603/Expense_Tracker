@@ -59,3 +59,57 @@ th {
 .date-section {
   margin: 20px 0;
 }
+
+.header-section .h1-text {
+  display: inline;
+  background-color: aqua;
+  margin-left: 200px;
+  padding: 20px;
+}
+.header-section input {
+  display: inline;
+  background-color: burlywood;
+}
+.header-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: brown;
+}
+.header-section .input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.header-section .input-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+input[readonly] {
+  background-color: #e9ecef;
+  cursor: pointer; /* Change cursor to pointer (hand) */
+}
+#saveButton {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+}
+.error {
+  color: red;
+  margin-top: 5px;
+  display: none;
+}
+.input-container {
+  /* background-color: #beaced; */
+  margin-left: 300px;
+  width: 100%;
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <style>
+      .error {
+        color: red;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-container">
+      <div class="input-row">
+        <label for="date">Date:</label>
+        <input type="date" id="date" />
+        <input type="number" id="amountInput" />
+        <select id="typeSelect">
+          <option value="gain">Gain</option>
+          <option value="loss">Loss</option>
+        </select>
+        <button id="addExpenseButton">Add Expense</button>
+      </div>
+      <span id="errorMessage" class="error"
+        >Please enter a positive value for gain.</span
+      >
+    </div>
+
+    <script>
+      function getLastWorkingDayOfMonth(year, month) {
+        const lastDay = new Date(year, month + 1, 0); // Last day of the month
+        const dayOfWeek = lastDay.getDay();
+
+        if (dayOfWeek === 6) {
+          lastDay.setDate(lastDay.getDate() - 1); // If Saturday, move to Friday
+        } else if (dayOfWeek === 0) {
+          lastDay.setDate(lastDay.getDate() - 2); // If Sunday, move to Friday
+        }
+
+        return lastDay;
+      }
+
+      function isSalaryDate(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const lastWorkingDay = getLastWorkingDayOfMonth(year, month);
+
+        return date.toDateString() === lastWorkingDay.toDateString();
+      }
+
+      // Set default date to today and check if it's the salary date
+      document.addEventListener("DOMContentLoaded", () => {
+        const dateInput = document.getElementById("date");
+        const typeSelect = document.getElementById("typeSelect");
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.value = today;
+
+        const todayDate = new Date(today);
+        if (isSalaryDate(todayDate)) {
+          typeSelect.value = "gain";
+        } else {
+          typeSelect.value = "loss";
+        }
+      });
+
+      // Check if selected date is salary date
+      document.getElementById("date").addEventListener("change", (event) => {
+        const selectedDate = new Date(event.target.value);
+        const typeSelect = document.getElementById("typeSelect");
+
+        if (isSalaryDate(selectedDate)) {
+          typeSelect.value = "gain";
+        } else {
+          typeSelect.value = "loss";
+        }
+      });
+
+      document
+        .getElementById("addExpenseButton")
+        .addEventListener("click", () => {
+          const result = validateExpense();
+          if (result) {
+            console.log("Expense added successfully.");
+            // Code to handle valid input goes here
+          } else {
+            console.log("Failed to add expense.");
+          }
+        });
+
+      function validateExpense() {
+        const amountInput = document.getElementById("amountInput");
+        const typeSelect = document.getElementById("typeSelect");
+        const errorMessage = document.getElementById("errorMessage");
+
+        const amountValue = parseFloat(amountInput.value.trim());
+        const selectedType = typeSelect.value;
+
+        if (selectedType === "gain" && amountValue < 0) {
+          errorMessage.style.display = "inline";
+          amountInput.focus();
+          return false; // Failure
+        } else {
+          errorMessage.style.display = "none";
+          return true; // Success
+        }
+      }
+    </script>
+  </body>
+</html>

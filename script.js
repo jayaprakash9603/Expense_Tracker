@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const expenseSections = document.getElementById("expenseSections");
   const totalSalaryElement = document.getElementById("totalSalary");
   const creditDueElement = document.getElementById("creditDue");
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.value = today;
 
   const expensesByDate = {};
 
@@ -20,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = parseFloat(amountInput.value);
     const type = typeInput.value;
     const paymentMethod = paymentMethodInput.value;
-
     if (!date || isNaN(amount)) {
       alert("Please enter valid data");
       return;
@@ -57,9 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSummary();
     sortAndDisplaySections();
 
-    dateInput.value = "";
+    const today = new Date().toISOString().split("T")[0];
+    dateInput.value = today;
     amountInput.value = "";
-    typeInput.value = "gain";
+    typeInput.value = "loss";
     paymentMethodInput.value = "cash";
   });
 
@@ -136,6 +138,52 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function validateExpense() {
+    const amountInput = document.getElementById("amountInput");
+    const typeSelect = document.getElementById("typeSelect");
+    const errorMessage = document.getElementById("errorMessage");
+
+    const amountValue = parseFloat(amountInput.value.trim());
+    const selectedType = typeSelect.value;
+
+    if (selectedType === "gain" && amountValue < 0) {
+      errorMessage.style.display = "inline";
+      amountInput.focus();
+      return false; // Failure
+    } else {
+      errorMessage.style.display = "none";
+      return true; // Success
+    }
+  }
+
+  const input = document.getElementById("editableInput");
+  const saveButton = document.getElementById("saveButton");
+  const errorMessage = document.getElementById("errorMessage");
+  input.addEventListener("dblclick", enableEditing);
+  saveButton.addEventListener("click", validateAndSaveInput);
+  function enableEditing() {
+    const input = document.getElementById("editableInput");
+    const saveButton = document.getElementById("saveButton");
+    const errorMessage = document.getElementById("errorMessage");
+
+    input.removeAttribute("readonly");
+    input.focus();
+    saveButton.style.display = "inline";
+    errorMessage.style.display = "none";
+  }
+
+  function validateAndSaveInput() {
+    let inputValue = input.value.trim();
+    if (isNaN(inputValue) || inputValue === "") {
+      errorMessage.style.display = "block";
+    } else {
+      inputValue = parseInt(inputValue, 10);
+      input.value = inputValue;
+      input.setAttribute("readonly", "readonly");
+      saveButton.style.display = "none";
+      errorMessage.style.display = "none";
+    }
+  }
   function updateSortButtonLabel() {
     sortButton.innerText = sortOrderAscending
       ? "Sort by Date (Ascending)"
