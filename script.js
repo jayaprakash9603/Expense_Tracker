@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       netAmount = -amount;
     }
 
-    if (paymentMethod === "credit") {
+    if (paymentMethod === "creditNeedToPaid") {
       creditDue += amount;
       totalSalary -= amount;
     } else if (paymentMethod === "creditPaid") {

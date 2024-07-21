@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <style>
+      .error {
+        color: red;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-container">
+      <div class="input-row">
+        <input type="number" id="amountInput" />
+        <select id="typeSelect">
+          <option value="gain">Gain</option>
+          <option value="loss">Loss</option>
+        </select>
+        <button id="addExpenseButton">Add Expense</button>
+      </div>
+      <span id="errorMessage" class="error"
+        >Please enter a positive value for gain.</span
+      >
+    </div>
+
+    <script>
+      document
+        .getElementById("addExpenseButton")
+        .addEventListener("click", validateExpense);
+
+      function validateExpense() {
+        const amountInput = document.getElementById("amountInput");
+        const typeSelect = document.getElementById("typeSelect");
+        const errorMessage = document.getElementById("errorMessage");
+
+        const amountValue = parseFloat(amountInput.value.trim());
+        const selectedType = typeSelect.value;
+
+        if (selectedType === "gain" && amountValue < 0) {
+          errorMessage.style.display = "inline";
+          amountInput.focus();
+        } else {
+          errorMessage.style.display = "none";
+          // Code to handle valid input goes here
+          console.log(`Added expense: ${amountValue} as ${selectedType}`);
+        }
+      }
+    </script>
+  </body>
+</html>
