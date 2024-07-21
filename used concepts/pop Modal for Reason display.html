@@ -124,7 +124,7 @@
     <!-- Modal for reasons -->
     <div id="reasonModal" class="modal">
       <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close" data-modal="reasonModal">&times;</span>
         <h2>Reasons for Date</h2>
         <table id="reasonDetailsTable">
           <thead>
@@ -141,7 +141,7 @@
     <!-- Modal for all reasons -->
     <div id="allReasonsModal" class="modal">
       <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close" data-modal="allReasonsModal">&times;</span>
         <h2>All Reasons</h2>
         <table id="allReasonsTable">
           <thead>
@@ -158,6 +158,12 @@
     <script>
       const reasonsByDate = {}; // Object to store reasons by date
 
+      /**
+       * Returns the last working day of the month, adjusted if it falls on a weekend.
+       * @param {number} year - The year.
+       * @param {number} month - The month (0-based).
+       * @returns {Date} - The last working day of the month.
+       */
       function getLastWorkingDayOfMonth(year, month) {
         const lastDay = new Date(year, month + 1, 0); // Last day of the month
         const dayOfWeek = lastDay.getDay();
@@ -171,6 +177,11 @@
         return lastDay;
       }
 
+      /**
+       * Checks if the provided date is a salary date (last working day of the month).
+       * @param {Date} date - The date to check.
+       * @returns {boolean} - True if the date is a salary date, false otherwise.
+       */
       function isSalaryDate(date) {
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -179,8 +190,10 @@
         return date.toDateString() === lastWorkingDay.toDateString();
       }
 
-      // Set default date to today and check if it's the salary date
-      document.addEventListener("DOMContentLoaded", () => {
+      /**
+       * Initializes the default date and sets the type based on whether it's a salary date.
+       */
+      function initializeDate() {
         const dateInput = document.getElementById("date");
         const typeSelect = document.getElementById("typeSelect");
         const today = new Date().toISOString().split("T")[0];
@@ -192,32 +205,39 @@
         } else {
           typeSelect.value = "loss";
         }
-      });
+      }
 
-      // Check if selected date is salary date
-      document.getElementById("date").addEventListener("change", (event) => {
-        const selectedDate = new Date(event.target.value);
+      /**
+       * Updates the type of expense based on the selected date.
+       */
+      function updateTypeBasedOnDate() {
+        const dateInput = document.getElementById("date");
         const typeSelect = document.getElementById("typeSelect");
+        const selectedDate = new Date(dateInput.value);
 
         if (isSalaryDate(selectedDate)) {
           typeSelect.value = "gain";
         } else {
           typeSelect.value = "loss";
         }
-      });
+      }
 
-      document
-        .getElementById("addExpenseButton")
-        .addEventListener("click", () => {
-          const result = validateExpense();
-          if (result) {
-            addExpenseToTable();
-            console.log("Expense added successfully.");
-          } else {
-            console.log("Failed to add expense.");
-          }
-        });
+      /**
+       * Adds an expense to the table if validation is successful.
+       */
+      function handleAddExpense() {
+        if (validateExpense()) {
+          addExpenseToTable();
+          console.log("Expense added successfully.");
+        } else {
+          console.log("Failed to add expense.");
+        }
+      }
 
+      /**
+       * Validates the expense input values.
+       * @returns {boolean} - True if the validation is successful, false otherwise.
+       */
       function validateExpense() {
         const amountInput = document.getElementById("amountInput");
         const typeSelect = document.getElementById("typeSelect");
@@ -226,7 +246,7 @@
         const amountValue = parseFloat(amountInput.value.trim());
         const selectedType = typeSelect.value;
 
-        if (isNaN(amountValue) || amountValue === "") {
+        if (isNaN(amountValue) || amountInput.value.trim() === "") {
           errorMessage.textContent = "Amount cannot be empty.";
           errorMessage.style.display = "inline";
           amountInput.focus();
@@ -242,6 +262,9 @@
         }
       }
 
+      /**
+       * Adds an expense entry to the table and updates reasons data.
+       */
       function addExpenseToTable() {
         const dateInput = document.getElementById("date").value;
         const amountInput = document.getElementById("amountInput").value;
@@ -256,50 +279,99 @@
         );
 
         if (existingRow) {
-          let totalCell = existingRow.cells[1];
-          let currentTotal = parseFloat(totalCell.textContent);
-          let newTotal =
-            currentTotal +
-            parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
-          totalCell.textContent = newTotal;
-
-          // Update reasons array
-          if (!reasonsByDate[dateInput]) {
-            reasonsByDate[dateInput] = [];
-          }
-          reasonsByDate[dateInput].push(`${reasonInput}-${amountInput}`);
+          updateExistingRow(
+            existingRow,
+            amountInput,
+            typeSelect,
+            reasonInput,
+            dateInput
+          );
         } else {
-          const newRow = tableBody.insertRow();
-          newRow.dataset.details = `${reasonInput}-${amountInput}`;
-
-          const dateCell = newRow.insertCell(0);
-          const totalCell = newRow.insertCell(1);
-          const checkCell = newRow.insertCell(2);
-          const actionsCell = newRow.insertCell(3);
-
-          dateCell.textContent = dateInput;
-          totalCell.textContent =
-            parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
-
-          const checkBox = document.createElement("input");
-          checkBox.type = "checkbox";
-          checkBox.classList.add("cell-content"); // Add class to handle overflow
-          checkCell.appendChild(checkBox);
-
-          const reasonButton = document.createElement("button");
-          reasonButton.textContent = "Reason";
-          reasonButton.classList.add("btn");
-          actionsCell.appendChild(reasonButton);
-
-          reasonButton.addEventListener("dblclick", () => {
-            showReasons(dateInput);
-          });
+          createNewRow(dateInput, amountInput, typeSelect, reasonInput);
         }
 
+        clearInputs();
+      }
+
+      /**
+       * Updates an existing row in the table with new values.
+       * @param {HTMLTableRowElement} row - The row to update.
+       * @param {string} amountInput - The amount value.
+       * @param {string} typeSelect - The type of expense.
+       * @param {string} reasonInput - The reason for the expense.
+       * @param {string} dateInput - The date of the expense.
+       */
+      function updateExistingRow(
+        row,
+        amountInput,
+        typeSelect,
+        reasonInput,
+        dateInput
+      ) {
+        const totalCell = row.cells[1];
+        const currentTotal = parseFloat(totalCell.textContent);
+        const newTotal =
+          currentTotal +
+          parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
+        totalCell.textContent = newTotal;
+
+        // Update reasons array
+        if (!reasonsByDate[dateInput]) {
+          reasonsByDate[dateInput] = [];
+        }
+        reasonsByDate[dateInput].push(`${reasonInput}-${amountInput}`);
+      }
+
+      /**
+       * Creates a new row in the table with given values.
+       * @param {string} dateInput - The date of the expense.
+       * @param {string} amountInput - The amount value.
+       * @param {string} typeSelect - The type of expense.
+       * @param {string} reasonInput - The reason for the expense.
+       */
+      function createNewRow(dateInput, amountInput, typeSelect, reasonInput) {
+        const tableBody = document
+          .getElementById("expensesTable")
+          .getElementsByTagName("tbody")[0];
+        const newRow = tableBody.insertRow();
+        newRow.dataset.details = `${reasonInput}-${amountInput}`;
+
+        const dateCell = newRow.insertCell(0);
+        const totalCell = newRow.insertCell(1);
+        const checkCell = newRow.insertCell(2);
+        const actionsCell = newRow.insertCell(3);
+
+        dateCell.textContent = dateInput;
+        totalCell.textContent =
+          parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
+
+        const checkBox = document.createElement("input");
+        checkBox.type = "checkbox";
+        checkBox.classList.add("cell-content"); // Add class to handle overflow
+        checkCell.appendChild(checkBox);
+
+        const reasonButton = document.createElement("button");
+        reasonButton.textContent = "Reason";
+        reasonButton.classList.add("btn");
+        actionsCell.appendChild(reasonButton);
+
+        reasonButton.addEventListener("dblclick", () => {
+          showReasons(dateInput);
+        });
+      }
+
+      /**
+       * Clears the input fields after adding an expense.
+       */
+      function clearInputs() {
         document.getElementById("amountInput").value = "";
         document.getElementById("reasonInput").value = "";
       }
 
+      /**
+       * Displays reasons for a specific date in the modal.
+       * @param {string} date - The date to display reasons for.
+       */
       function showReasons(date) {
         const reasonModal = document.getElementById("reasonModal");
         const reasonTableBody = document
@@ -323,6 +395,9 @@
         reasonModal.style.display = "block";
       }
 
+      /**
+       * Displays all reasons in the modal.
+       */
       function showAllReasons() {
         const allReasonsModal = document.getElementById("allReasonsModal");
         const allReasonsTableBody = document
@@ -346,12 +421,15 @@
         allReasonsModal.style.display = "block";
       }
 
-      // Modal functionality
+      /**
+       * Sets up the modal functionality (show and hide).
+       * @param {string} modalId - The ID of the modal to set up.
+       */
       function setupModal(modalId) {
         const modal = document.getElementById(modalId);
-        const span = modal.querySelector(".close");
+        const closeButton = modal.querySelector(".close");
 
-        span.onclick = function () {
+        closeButton.onclick = function () {
           modal.style.display = "none";
         };
 
@@ -362,11 +440,23 @@
         };
       }
 
-      setupModal("reasonModal");
-      setupModal("allReasonsModal");
+      // Initialize date and type on page load
+      document.addEventListener("DOMContentLoaded", initializeDate);
+
+      // Event listeners
+      document
+        .getElementById("date")
+        .addEventListener("change", updateTypeBasedOnDate);
+      document
+        .getElementById("addExpenseButton")
+        .addEventListener("click", handleAddExpense);
       document
         .getElementById("showAllReasonsButton")
         .addEventListener("click", showAllReasons);
+
+      // Setup modals
+      setupModal("reasonModal");
+      setupModal("allReasonsModal");
     </script>
   </body>
 </html>
