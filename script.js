@@ -42,9 +42,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const netAmount = calculateNetAmount(amount, type, paymentMethod);
     updateExpensesByDate(date, amount, type, paymentMethod, netAmount);
 
-    updateUI(date);
+    // Reset the view to show all dates
+    updateUI();
+
     saveExpensesToLocalStorage(); // Save updated data to local storage
     resetInputs();
+  }
+
+  function handleSearchByDate() {
+    const searchDate = searchDateInput.value;
+    if (searchDate && expensesByDate[searchDate]) {
+      // Clear the expenseSections and display only the searched date
+      expenseSections.innerHTML = "";
+      createNewDateSection(searchDate);
+      updateDateSection(searchDate);
+    } else {
+      alert("No expenses found for the selected date.");
+    }
   }
 
   function validateInputs(date, amount) {
@@ -88,8 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     expensesByDate[date].push({ amount, type, paymentMethod, netAmount });
   }
 
-  function updateUI(date) {
-    updateDateSection(date);
+  function updateUI() {
     updateSummary();
     sortAndDisplaySections();
   }
@@ -230,19 +243,6 @@ document.addEventListener("DOMContentLoaded", () => {
       input.setAttribute("readonly", "readonly");
       saveButton.style.display = "none";
       errorMessage.style.display = "none";
-    }
-  }
-
-  // Handle Search by Date
-  function handleSearchByDate() {
-    const searchDate = searchDateInput.value;
-    if (searchDate && expensesByDate[searchDate]) {
-      // Clear the expenseSections and display only the searched date
-      expenseSections.innerHTML = "";
-      createNewDateSection(searchDate);
-      updateDateSection(searchDate);
-    } else {
-      alert("No expenses found for the selected date.");
     }
   }
 
