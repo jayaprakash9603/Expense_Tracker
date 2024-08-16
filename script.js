@@ -2,7 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalSalary = 0;
   let creditDue = 0;
   let sortOrderAscending = true;
+  const expensesByDate = {};
 
+  // Initialize DOM elements
   const dateInput = document.getElementById("date");
   const amountInput = document.getElementById("amount");
   const typeInput = document.getElementById("type");
@@ -12,64 +14,130 @@ document.addEventListener("DOMContentLoaded", () => {
   const expenseSections = document.getElementById("expenseSections");
   const totalSalaryElement = document.getElementById("totalSalary");
   const creditDueElement = document.getElementById("creditDue");
-  const today = new Date().toISOString().split("T")[0];
-  dateInput.value = today;
 
-  const expensesByDate = {};
+  // Set default date to today
+  dateInput.value = getTodayDate();
 
-  addExpenseButton.addEventListener("click", () => {
+  // Event listeners
+  addExpenseButton.addEventListener("click", handleAddExpense);
+  sortButton.addEventListener("click", toggleSortOrder);
+  setupEditableInput();
+
+  // Helper Functions
+
+  function handleAddExpense() {
     const date = dateInput.value;
     const amount = parseFloat(amountInput.value);
     const type = typeInput.value;
     const paymentMethod = paymentMethodInput.value;
+
+    if (!validateInputs(date, amount)) return;
+
+    const netAmount = calculateNetAmount(amount, type, paymentMethod);
+    updateExpensesByDate(date, amount, type, paymentMethod, netAmount);
+
+    updateUI(date);
+    resetInputs();
+  }
+
+  function validateInputs(date, amount) {
     if (!date || isNaN(amount)) {
       alert("Please enter valid data");
-      return;
+      return false;
     }
+    return true;
+  }
 
+  function calculateNetAmount(amount, type, paymentMethod) {
     let netAmount = amount;
+
     if (type === "loss") {
       netAmount = -amount;
     }
 
-    if (paymentMethod === "creditNeedToPaid") {
-      creditDue += amount;
-      totalSalary -= amount;
-    } else if (paymentMethod === "creditPaid") {
-      creditDue -= amount;
-      netAmount = 0;
-    } else {
-      totalSalary += netAmount;
+    switch (paymentMethod) {
+      case "creditNeedToPaid":
+        creditDue += amount;
+        totalSalary -= amount;
+        break;
+      case "creditPaid":
+        creditDue -= amount;
+        netAmount = 0;
+        break;
+      default:
+        totalSalary += netAmount;
+        break;
     }
 
+    return netAmount;
+  }
+
+  function updateExpensesByDate(date, amount, type, paymentMethod, netAmount) {
     if (!expensesByDate[date]) {
       expensesByDate[date] = [];
       createNewDateSection(date);
     }
 
-    expensesByDate[date].push({
-      amount,
-      type,
-      paymentMethod,
-      netAmount,
-    });
+    expensesByDate[date].push({ amount, type, paymentMethod, netAmount });
+  }
 
+  function updateUI(date) {
     updateDateSection(date);
     updateSummary();
     sortAndDisplaySections();
+  }
 
-    const today = new Date().toISOString().split("T")[0];
-    dateInput.value = today;
+  function resetInputs() {
+    dateInput.value = getTodayDate();
     amountInput.value = "";
     typeInput.value = "loss";
     paymentMethodInput.value = "cash";
-  });
+  }
 
-  sortButton.addEventListener("click", () => {
-    sortOrderAscending = !sortOrderAscending;
-    sortAndDisplaySections();
-    updateSortButtonLabel();
-  });
+  function updateDateSection(date) {
+    const tbody = document.getElementById(`tbody-${date}`);
+    tbody.innerHTML = "";
+
+    let totalNetAmount = 0;
+
+    expensesByDate[date].forEach((expense) => {
+      const row = tbody.insertRow();
+      row.insertCell(0).innerText = expense.amount;
+      row.insertCell(1).innerText = expense.type;
+      row.insertCell(2).innerText = expense.paymentMethod;
+      row.insertCell(3).innerText = expense.netAmount;
+      totalNetAmount += expense.netAmount;
+    });
+
+    addTotalRow(tbody, totalNetAmount);
+  }
+
+  function addTotalRow(tbody, totalNetAmount) {
+    const totalRow = tbody.insertRow();
+    totalRow.insertCell(0).innerText = "";
+    totalRow.insertCell(1).innerText = "";
+    totalRow.insertCell(2).innerText = "Total Net Amount";
+    totalRow.insertCell(3).innerText = totalNetAmount;
+  }
+
+  function updateSummary() {
+    totalSalaryElement.innerText = totalSalary;
+    creditDueElement.innerText = creditDue;
+  }
+
+  function sortAndDisplaySections() {
+    const dates = Object.keys(expensesByDate).sort((a, b) => {
+      return sortOrderAscending
+        ? new Date(a) - new Date(b)
+        : new Date(b) - new Date(a);
+    });
+
+    expenseSections.innerHTML = "";
+    dates.forEach((date) => {
+      createNewDateSection(date);
+      updateDateSection(date);
+    });
+  }
 
   function createNewDateSection(date) {
     const section = document.createElement("div");
@@ -98,81 +166,54 @@ document.addEventListener("DOMContentLoaded", () => {
     expenseSections.appendChild(section);
   }
 
-  function updateDateSection(date) {
-    const tbody = document.getElementById(`tbody-${date}`);
-    tbody.innerHTML = "";
-    let totalNetAmount = 0;
-
-    expensesByDate[date].forEach((expense) => {
-      const row = tbody.insertRow();
-      row.insertCell(0).innerText = expense.amount;
-      row.insertCell(1).innerText = expense.type;
-      row.insertCell(2).innerText = expense.paymentMethod;
-      row.insertCell(3).innerText = expense.netAmount;
-      totalNetAmount += expense.netAmount;
-    });
-
-    const totalRow = tbody.insertRow();
-    totalRow.insertCell(0).innerText = "";
-    totalRow.insertCell(1).innerText = "";
-    totalRow.insertCell(2).innerText = "Total Net Amount";
-    totalRow.insertCell(3).innerText = totalNetAmount;
+  function toggleSortOrder() {
+    sortOrderAscending = !sortOrderAscending;
+    sortAndDisplaySections();
+    updateSortButtonLabel();
   }
 
-  function updateSummary() {
-    totalSalaryElement.innerText = totalSalary;
-    creditDueElement.innerText = creditDue;
+  function updateSortButtonLabel() {
+    sortButton.innerText = sortOrderAscending
+      ? "Sort by Date (Ascending)"
+      : "Sort by Date (Descending)";
   }
 
-  function sortAndDisplaySections() {
-    const dates = Object.keys(expensesByDate).sort((a, b) => {
-      return sortOrderAscending
-        ? new Date(a) - new Date(b)
-        : new Date(b) - new Date(a);
-    });
-
-    expenseSections.innerHTML = "";
-    dates.forEach((date) => {
-      createNewDateSection(date);
-      updateDateSection(date);
-    });
+  function getTodayDate() {
+    return new Date().toISOString().split("T")[0];
   }
 
-  function validateExpense() {
-    const amountInput = document.getElementById("amountInput");
-    const typeSelect = document.getElementById("typeSelect");
+  function setupEditableInput() {
+    const monthSalaryInput = document.getElementById("editableInput");
+    const monthSalaryInputsaveButton = document.getElementById("saveButton");
     const errorMessage = document.getElementById("errorMessage");
 
-    const amountValue = parseFloat(amountInput.value.trim());
-    const selectedType = typeSelect.value;
+    monthSalaryInput.addEventListener("dblclick", () =>
+      enableEditing(monthSalaryInput, monthSalaryInputsaveButton, errorMessage)
+    );
 
-    if (selectedType === "gain" && amountValue < 0) {
-      errorMessage.style.display = "inline";
-      amountInput.focus();
-      return false; // Failure
-    } else {
-      errorMessage.style.display = "none";
-      return true; // Success
-    }
+    monthSalaryInputsaveButton.addEventListener("click", () =>
+      validateAndSaveInput(
+        monthSalaryInput,
+        monthSalaryInputsaveButton,
+        errorMessage
+      )
+    );
+
+    monthSalaryInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        monthSalaryInputsaveButton.click();
+      }
+    });
   }
 
-  const input = document.getElementById("editableInput");
-  const saveButton = document.getElementById("saveButton");
-  const errorMessage = document.getElementById("errorMessage");
-  input.addEventListener("dblclick", enableEditing);
-  saveButton.addEventListener("click", validateAndSaveInput);
-  function enableEditing() {
-    const input = document.getElementById("editableInput");
-    const saveButton = document.getElementById("saveButton");
-    const errorMessage = document.getElementById("errorMessage");
-
+  function enableEditing(input, saveButton, errorMessage) {
     input.removeAttribute("readonly");
     input.focus();
     saveButton.style.display = "inline";
     errorMessage.style.display = "none";
   }
 
-  function validateAndSaveInput() {
+  function validateAndSaveInput(input, saveButton, errorMessage) {
     let inputValue = input.value.trim();
     if (isNaN(inputValue) || inputValue === "") {
       errorMessage.style.display = "block";
@@ -183,10 +224,5 @@ document.addEventListener("DOMContentLoaded", () => {
       saveButton.style.display = "none";
       errorMessage.style.display = "none";
     }
-  }
-  function updateSortButtonLabel() {
-    sortButton.innerText = sortOrderAscending
-      ? "Sort by Date (Ascending)"
-      : "Sort by Date (Descending)";
   }
 });

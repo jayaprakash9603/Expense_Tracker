@@ -45,12 +45,26 @@
       <div class="input-row">
         <label for="date">Date:</label>
         <input type="date" id="date" />
+
+        <label for="amount">Amount:</label>
         <input type="number" id="amountInput" placeholder="Amount" />
+
+        <label for="reason">Reason:</label>
         <input type="text" id="reasonInput" placeholder="Reason" />
+
+        <label for="type">Type:</label>
         <select id="typeSelect">
           <option value="gain">Gain</option>
           <option value="loss">Loss</option>
         </select>
+
+        <label for="paymentMethod">Payment Method:</label>
+        <select id="paymentMethod">
+          <option value="cash">Cash</option>
+          <option value="creditNeedToPaid">Credit Card</option>
+          <option value="creditPaid">Credit Card Paid</option>
+        </select>
+
         <button id="addExpenseButton">Add Expense</button>
       </div>
       <span id="errorMessage" class="error"

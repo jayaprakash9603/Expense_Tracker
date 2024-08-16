@@ -113,3 +113,6 @@ input[readonly] {
   margin-left: 300px;
   width: 100%;
 }
+#addExpenseButton {
+  display: none;
+}
