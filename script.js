@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const expenseSections = document.getElementById("expenseSections");
   const totalSalaryElement = document.getElementById("totalSalary");
   const creditDueElement = document.getElementById("creditDue");
+  const searchDateInput = document.getElementById("searchDate");
+  const searchButton = document.getElementById("searchButton");
 
   // Set default date to today
   dateInput.value = getTodayDate();
@@ -24,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event listeners
   addExpenseButton.addEventListener("click", handleAddExpense);
   sortButton.addEventListener("click", toggleSortOrder);
+  searchButton.addEventListener("click", handleSearchByDate);
   setupEditableInput();
 
   // Helper Functions
@@ -227,6 +230,19 @@ document.addEventListener("DOMContentLoaded", () => {
       input.setAttribute("readonly", "readonly");
       saveButton.style.display = "none";
       errorMessage.style.display = "none";
+    }
+  }
+
+  // Handle Search by Date
+  function handleSearchByDate() {
+    const searchDate = searchDateInput.value;
+    if (searchDate && expensesByDate[searchDate]) {
+      // Clear the expenseSections and display only the searched date
+      expenseSections.innerHTML = "";
+      createNewDateSection(searchDate);
+      updateDateSection(searchDate);
+    } else {
+      alert("No expenses found for the selected date.");
     }
   }
 
