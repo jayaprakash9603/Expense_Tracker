@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalSalary = 0;
   let creditDue = 0;
   let sortOrderAscending = true;
-  const expensesByDate = {};
+  const expensesByDate = loadExpensesFromLocalStorage() || {};
 
   // Initialize DOM elements
   const dateInput = document.getElementById("date");
@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Set default date to today
   dateInput.value = getTodayDate();
+
+  // Load and display data from local storage
+  initializeUI();
 
   // Event listeners
   addExpenseButton.addEventListener("click", handleAddExpense);
@@ -37,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateExpensesByDate(date, amount, type, paymentMethod, netAmount);
 
     updateUI(date);
+    saveExpensesToLocalStorage(); // Save updated data to local storage
     resetInputs();
   }
 
@@ -224,5 +228,25 @@ document.addEventListener("DOMContentLoaded", () => {
       saveButton.style.display = "none";
       errorMessage.style.display = "none";
     }
+  }
+
+  // Local Storage Functions
+
+  function saveExpensesToLocalStorage() {
+    localStorage.setItem("expensesByDate", JSON.stringify(expensesByDate));
+  }
+
+  function loadExpensesFromLocalStorage() {
+    const savedData = localStorage.getItem("expensesByDate");
+    return savedData ? JSON.parse(savedData) : null;
+  }
+
+  function initializeUI() {
+    Object.keys(expensesByDate).forEach((date) => {
+      createNewDateSection(date);
+      updateDateSection(date);
+    });
+    updateSummary();
+    sortAndDisplaySections();
   }
 });
