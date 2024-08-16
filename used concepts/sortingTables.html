@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sortable Table</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      th.sortable:hover {
+        cursor: pointer;
+      }
+      .sort-icon {
+        font-size: 0.75rem;
+        margin-left: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th class="sortable" data-column="amount" data-order="desc">
+              Amount <span class="sort-icon">&#9660;</span>
+            </th>
+            <th class="sortable" data-column="type" data-order="desc">
+              Type <span class="sort-icon">&#9660;</span>
+            </th>
+            <th class="sortable" data-column="paymentMethod" data-order="desc">
+              Payment Method <span class="sort-icon">&#9660;</span>
+            </th>
+            <th class="sortable" data-column="netAmount" data-order="desc">
+              Net Amount <span class="sort-icon">&#9660;</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Table rows will be inserted here by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      const tableData = [
+        { amount: 2000, type: "gain", paymentMethod: "cash", netAmount: 2000 },
+        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 4000, type: "loss", paymentMethod: "cash", netAmount: -4000 },
+        {
+          amount: 30000,
+          type: "gain",
+          paymentMethod: "cash",
+          netAmount: 30000,
+        },
+        { amount: 300, type: "gain", paymentMethod: "cash", netAmount: 300 },
+        { amount: 4000, type: "loss", paymentMethod: "cash", netAmount: -4000 },
+        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
+        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        {
+          amount: 30000,
+          type: "loss",
+          paymentMethod: "cash",
+          netAmount: -30000,
+        },
+        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: -3000, type: "loss", paymentMethod: "cash", netAmount: 3000 },
+        {
+          amount: -30000,
+          type: "loss",
+          paymentMethod: "cash",
+          netAmount: 30000,
+        },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        {
+          amount: -3000,
+          type: "gain",
+          paymentMethod: "cash",
+          netAmount: -3000,
+        },
+        {
+          amount: 981234,
+          type: "loss",
+          paymentMethod: "cash",
+          netAmount: -981234,
+        },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 3125, type: "loss", paymentMethod: "cash", netAmount: -3125 },
+        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
+        { amount: -3000, type: "loss", paymentMethod: "cash", netAmount: 3000 },
+        { amount: 2000, type: "loss", paymentMethod: "cash", netAmount: -2000 },
+      ];
+
+      function renderTable(data) {
+        const tableBody = document.getElementById("tableBody");
+        tableBody.innerHTML = "";
+        data.forEach((row) => {
+          const tr = document.createElement("tr");
+          Object.values(row).forEach((value) => {
+            const td = document.createElement("td");
+            td.textContent = value;
+            tr.appendChild(td);
+          });
+          tableBody.appendChild(tr);
+        });
+      }
+
+      function sortTable(column, order) {
+        const sortedData = tableData.slice().sort((a, b) => {
+          if (typeof a[column] === "string") {
+            return order === "asc"
+              ? a[column].localeCompare(b[column])
+              : b[column].localeCompare(a[column]);
+          } else {
+            return order === "asc"
+              ? a[column] - b[column]
+              : b[column] - a[column];
+          }
+        });
+        renderTable(sortedData);
+      }
+
+      document.querySelectorAll("th.sortable").forEach((th) => {
+        th.addEventListener("click", () => {
+          const column = th.getAttribute("data-column");
+          let order = th.getAttribute("data-order");
+          order = order === "asc" ? "desc" : "asc";
+          th.setAttribute("data-order", order);
+          sortTable(column, order);
+          updateSortIcons(th, order);
+        });
+      });
+
+      function updateSortIcons(th, order) {
+        document.querySelectorAll("th.sortable .sort-icon").forEach((icon) => {
+          icon.innerHTML = "&#9660;";
+        });
+        const sortIcon = th.querySelector(".sort-icon");
+        sortIcon.innerHTML = order === "asc" ? "&#9650;" : "&#9660;";
+      }
+
+      // Initial render
+      renderTable(tableData);
+    </script>
+  </body>
+</html>

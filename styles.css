@@ -116,3 +116,7 @@ input[readonly] {
 #addExpenseButton {
   display: none;
 }
+.input-section {
+  background-color: #8d949b;
+  display: flex;
+}

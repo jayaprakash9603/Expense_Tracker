@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Monthly Expense Tracker</title>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
   </head>
   <body>
     <div class="container">
@@ -20,26 +24,33 @@
       </div>
 
       <div class="input-section">
-        <label for="date">Date:</label>
-        <input type="date" id="date" />
+        <div class="dateInput">
+          <label for="date">Date:</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="amountInput">
+          <label for="amount">Amount:</label>
+          <input type="number" id="amount" />
+        </div>
+        <div class="typeInput">
+          <label for="type">Type:</label>
+          <select id="type">
+            <option value="gain">Gain</option>
+            <option value="loss">Loss</option>
+          </select>
+        </div>
+        <div class="paymentInput">
+          <label for="paymentMethod">Payment Method:</label>
+          <select id="paymentMethod">
+            <option value="cash">Cash</option>
+            <option value="creditNeedToPaid">Credit Card</option>
+            <option value="creditPaid">Credit Card Paid</option>
+          </select>
+        </div>
+        <div class="addExpenseButton">
+          <button id="addExpense">Add Expense</button>
+        </div>
 
-        <label for="amount">Amount:</label>
-        <input type="number" id="amount" />
-
-        <label for="type">Type:</label>
-        <select id="type">
-          <option value="gain">Gain</option>
-          <option value="loss">Loss</option>
-        </select>
-
-        <label for="paymentMethod">Payment Method:</label>
-        <select id="paymentMethod">
-          <option value="cash">Cash</option>
-          <option value="creditNeedToPaid">Credit Card</option>
-          <option value="creditPaid">Credit Card Paid</option>
-        </select>
-
-        <button id="addExpense">Add Expense</button>
         <!-- <span id="errorMessage" class="error">Please enter a valid number</span> -->
       </div>
       <div class="search-section">
@@ -58,7 +69,8 @@
         <p>Credit Card Due: <span id="creditDue">0</span></p>
       </div>
     </div>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
