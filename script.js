@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const type = typeInput.value;
     const paymentMethod = paymentMethodInput.value;
 
-    if (!validateInputs(date, amount)) return;
+    if (!validateInputs(date, amount, type)) return;
 
     const netAmount = calculateNetAmount(amount, type, paymentMethod);
     updateExpensesByDate(date, amount, type, paymentMethod, netAmount);
@@ -61,9 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function validateInputs(date, amount) {
+  function validateInputs(date, amount, type) {
     if (!date || isNaN(amount)) {
       alert("Please enter valid data");
+      return false;
+    } else if (type == "gain" && amount < 0) {
+      alert("Please enter positive number");
       return false;
     }
     return true;
@@ -265,4 +268,49 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSummary();
     sortAndDisplaySections();
   }
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.value = today;
+
+  const todayDate = new Date(today);
+  function getLastWorkingDayOfMonth(year, month) {
+    const lastDay = new Date(year, month + 1, 0); // Last day of the month
+    const dayOfWeek = lastDay.getDay();
+
+    if (dayOfWeek === 6) {
+      lastDay.setDate(lastDay.getDate() - 1); // If Saturday, move to Friday
+    } else if (dayOfWeek === 0) {
+      lastDay.setDate(lastDay.getDate() - 2); // If Sunday, move to Friday
+    }
+
+    return lastDay;
+  }
+
+  function isSalaryDate(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const lastWorkingDay = getLastWorkingDayOfMonth(year, month);
+
+    return date.toDateString() === lastWorkingDay.toDateString();
+  }
+
+  console.log(todayDate);
+  if (isSalaryDate(todayDate)) {
+    typeInput.value = "gain";
+  } else {
+    typeInput.value = "loss";
+  }
+
+  function handleDateChange(event) {
+    const selectedDate = new Date(event.target.value);
+    const typeSelect = document.getElementById("type");
+
+    if (isSalaryDate(selectedDate)) {
+      typeSelect.value = "gain";
+    } else {
+      typeSelect.value = "loss";
+    }
+  }
+
+  // Attach event listener
+  document.getElementById("date").addEventListener("change", handleDateChange);
 });
