@@ -65,6 +65,16 @@ th.sortable:hover {
 .sort-icon {
   font-size: 0.8rem;
   margin-left: 20px;
+  color: red;
+  /* background-color: aqua; */
+  transition: color 0.3s;
+}
+.sort-icon.asc {
+  color: green; /* Color for ascending order */
+}
+
+.sort-icon.desc {
+  color: red; /* Color for descending order */
 }
 .date-section {
   margin: 20px 0;

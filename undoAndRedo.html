@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .table-container {
+        margin: 20px;
+      }
+      .sync-btn {
+        margin-top: 10px;
+      }
+      .navigation-icons {
+        font-size: 1.5rem;
+        cursor: pointer;
+        margin: 0 10px;
+      }
+      .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .header-date {
+        flex: 1;
+        text-align: center;
+      }
+      .total-row {
+        font-weight: bold;
+      }
+      .total-label {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container table-container">
+      <div class="header-container mb-3">
+        <i
+          class="bi bi-arrow-left navigation-icons"
+          onclick="expenseTracker.undo()"
+          id="undo-btn"
+          disabled
+        ></i>
+        <h2 class="header-date" id="table-date">2024-08-17</h2>
+        <i
+          class="bi bi-arrow-right navigation-icons"
+          onclick="expenseTracker.redo()"
+          id="redo-btn"
+          disabled
+        ></i>
+      </div>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Payment Method</th>
+            <th>Net Amount</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <!-- Static rows will be dynamically inserted here -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right total-label">
+              Total Net Amount:
+            </td>
+            <td class="total-row" id="total-net-amount">0</td>
+          </tr>
+        </tfoot>
+      </table>
+      <button class="btn btn-primary sync-btn">
+        <i class="bi bi-arrow-clockwise"></i> Sync
+      </button>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      const expenseTracker = (function () {
+        // Static options
+        const types = ["Gain", "Loss"];
+        const paymentMethods = ["Cash", "Credit Paid"];
+
+        // Initial data
+        const initialData = [
+          {
+            amount: 3000,
+            type: "Gain",
+            paymentMethod: "Cash",
+            netAmount: 3000,
+          },
+          {
+            amount: 3000,
+            type: "Gain",
+            paymentMethod: "Cash",
+            netAmount: 3000,
+          },
+          {
+            amount: 3000,
+            type: "Gain",
+            paymentMethod: "Credit Paid",
+            netAmount: 0,
+          },
+          {
+            amount: 9000,
+            type: "Gain",
+            paymentMethod: "Cash",
+            netAmount: 9000,
+          },
+          {
+            amount: 33000,
+            type: "Loss",
+            paymentMethod: "Cash",
+            netAmount: -33000,
+          },
+        ];
+
+        let tableStates = [];
+        let currentStateIndex = -1;
+
+        function createRow(amount, type, paymentMethod, netAmount) {
+          return `
+                    <tr>
+                        <td><input type="number" class="form-control amount-input" value="${amount}"></td>
+                        <td>
+                            <select class="form-control type-select">
+                                ${types
+                                  .map(
+                                    (t) =>
+                                      `<option value="${t}" ${
+                                        t === type ? "selected" : ""
+                                      }>${t}</option>`
+                                  )
+                                  .join("")}
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control payment-method-select">
+                                ${paymentMethods
+                                  .map(
+                                    (pm) =>
+                                      `<option value="${pm}" ${
+                                        pm === paymentMethod ? "selected" : ""
+                                      }>${pm}</option>`
+                                  )
+                                  .join("")}
+                            </select>
+                        </td>
+                        <td><input type="number" class="form-control net-amount-input" value="${netAmount}" readonly></td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="expenseTracker.deleteRow(this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+        }
+
+        function renderTable() {
+          const tbody = document.getElementById("table-body");
+          tbody.innerHTML = initialData
+            .map((row) =>
+              createRow(row.amount, row.type, row.paymentMethod, row.netAmount)
+            )
+            .join("");
+          saveState();
+          updateTotalNetAmount();
+        }
+
+        function saveState() {
+          const rows = Array.from(
+            document.querySelectorAll("#table-body tr")
+          ).map((row) => {
+            const amount = row.querySelector(".amount-input").value;
+            const type = row.querySelector(".type-select").value;
+            const paymentMethod = row.querySelector(
+              ".payment-method-select"
+            ).value;
+            const netAmount = row.querySelector(".net-amount-input").value;
+            return { amount, type, paymentMethod, netAmount };
+          });
+
+          const tableHtml = rows
+            .map((row) =>
+              createRow(row.amount, row.type, row.paymentMethod, row.netAmount)
+            )
+            .join("");
+          if (currentStateIndex === tableStates.length - 1) {
+            tableStates.push(tableHtml);
+          } else {
+            tableStates = tableStates.slice(0, currentStateIndex + 1);
+            tableStates.push(tableHtml);
+          }
+          currentStateIndex = tableStates.length - 1;
+          updateNavigationButtons();
+        }
+
+        function updateNavigationButtons() {
+          document.getElementById("undo-btn").disabled = currentStateIndex <= 0;
+          document.getElementById("redo-btn").disabled =
+            currentStateIndex >= tableStates.length - 1;
+        }
+
+        function undo() {
+          if (currentStateIndex > 0) {
+            currentStateIndex--;
+            document.querySelector("#table-body").innerHTML =
+              tableStates[currentStateIndex];
+            updateTotalNetAmount();
+            updateNavigationButtons();
+          }
+        }
+
+        function redo() {
+          if (currentStateIndex < tableStates.length - 1) {
+            currentStateIndex++;
+            document.querySelector("#table-body").innerHTML =
+              tableStates[currentStateIndex];
+            updateTotalNetAmount();
+            updateNavigationButtons();
+          }
+        }
+
+        function clearTable() {
+          document.getElementById("table-body").innerHTML = "";
+          document.getElementById("total-net-amount").textContent = "0";
+          saveState();
+          updateNavigationButtons();
+        }
+
+        function deleteRow(button) {
+          const row = button.closest("tr");
+          row.remove();
+          saveState();
+          updateTotalNetAmount();
+
+          // Check if the table is empty
+          if (document.querySelectorAll("#table-body tr").length === 0) {
+            clearTable();
+          }
+        }
+
+        function updateTotalNetAmount() {
+          let totalNetAmount = 0;
+          document.querySelectorAll(".net-amount-input").forEach((input) => {
+            totalNetAmount += parseFloat(input.value);
+          });
+          document.getElementById("total-net-amount").textContent =
+            totalNetAmount;
+        }
+
+        // Public methods
+        return {
+          renderTable,
+          undo,
+          redo,
+          deleteRow,
+          updateTotalNetAmount,
+        };
+      })();
+
+      // Initialize the table
+      expenseTracker.renderTable();
+    </script>
+  </body>
+</html>

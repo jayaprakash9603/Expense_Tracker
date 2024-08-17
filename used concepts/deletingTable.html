@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      .delete-icon {
+        color: red;
+        cursor: pointer;
+      }
+      .delete-icon:hover {
+        color: darkred;
+      }
+      .date-section {
+        margin: 20px 0;
+        position: relative;
+      }
+      .date-section .delete-date-icon {
+        position: absolute;
+        right: 0;
+        top: 0;
+        color: red;
+        cursor: pointer;
+      }
+      .date-section .delete-date-icon:hover {
+        color: darkred;
+      }
+      .empty-table-message {
+        text-align: center;
+        color: grey;
+        font-style: italic;
+      }
+      .sync-button {
+        margin-bottom: 20px;
+        color: green;
+        cursor: pointer;
+      }
+      .sync-button:hover {
+        color: darkgreen;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <i class="fas fa-sync-alt sync-button" onclick="syncData()"></i>
+      <div class="date-section">
+        <h2>
+          2024-08-29
+          <i
+            class="fas fa-trash delete-date-icon"
+            onclick="deleteDate(this)"
+          ></i>
+        </h2>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Amount <i class="fas fa-sort"></i></th>
+              <th>Type <i class="fas fa-sort"></i></th>
+              <th>Payment Method <i class="fas fa-sort"></i></th>
+              <th>Net Amount <i class="fas fa-sort"></i></th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>80908098</td>
+              <td>gain</td>
+              <td>cash</td>
+              <td>80908098</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total Net Amount</td>
+              <td>80908098</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="date-section">
+        <h2>
+          2024-08-28
+          <i
+            class="fas fa-trash delete-date-icon"
+            onclick="deleteDate(this)"
+          ></i>
+        </h2>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Amount <i class="fas fa-sort"></i></th>
+              <th>Type <i class="fas fa-sort"></i></th>
+              <th>Payment Method <i class="fas fa-sort"></i></th>
+              <th>Net Amount <i class="fas fa-sort"></i></th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>98099</td>
+              <td>gain</td>
+              <td>cash</td>
+              <td>98099</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total Net Amount</td>
+              <td>98099</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="date-section">
+        <h2>
+          2024-08-17
+          <i
+            class="fas fa-trash delete-date-icon"
+            onclick="deleteDate(this)"
+          ></i>
+        </h2>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Amount <i class="fas fa-sort"></i></th>
+              <th>Type <i class="fas fa-sort"></i></th>
+              <th>Payment Method <i class="fas fa-sort"></i></th>
+              <th>Net Amount <i class="fas fa-sort"></i></th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>300</td>
+              <td>gain</td>
+              <td>cash</td>
+              <td>300</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+            <tr>
+              <td>3000</td>
+              <td>loss</td>
+              <td>creditNeedToPaid</td>
+              <td>-3000</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+            <tr>
+              <td>3000</td>
+              <td>gain</td>
+              <td>creditPaid</td>
+              <td>0</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+            <tr>
+              <td>9000</td>
+              <td>gain</td>
+              <td>cash</td>
+              <td>9000</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+            <tr>
+              <td>33000</td>
+              <td>loss</td>
+              <td>cash</td>
+              <td>-33000</td>
+              <td>
+                <i
+                  class="fas fa-trash delete-icon"
+                  onclick="deleteRow(this)"
+                ></i>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total Net Amount</td>
+              <td>-26700</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script>
+      function deleteRow(icon) {
+        const row = icon.closest("tr");
+        row.remove();
+        checkTableStatus(icon);
+      }
+
+      function deleteDate(icon) {
+        const dateSection = icon.closest(".date-section");
+        dateSection.remove();
+      }
+
+      function checkTableStatus(icon) {
+        const table = icon.closest("table");
+        const rows = table.querySelectorAll("tbody tr");
+
+        if (rows.length === 0) {
+          // Remove the entire date section if no rows are left
+          const dateSection = table.closest(".date-section");
+          dateSection.remove();
+        }
+      }
+
+      function syncData() {
+        // Simulate data refresh
+        alert("Data has been refreshed!");
+        // In a real application, you could make an AJAX call here to fetch new data and update the table
+        // Example:
+        // fetch('/data-endpoint')
+        //   .then(response => response.json())
+        //   .then(data => updateTable(data));
+      }
+    </script>
+  </body>
+</html>

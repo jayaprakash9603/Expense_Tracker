@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let totalSalary = 0;
-  let creditDue = 0;
+  let totalSalary = parseFloat(loadTotalSalaryFromLocalStorage()) || 0;
+  let creditDue = parseFloat(loadCreditCardDueFromLocalStorage()) || 0;
   let sortOrderAscending = true;
   let currentCell;
   let currentRow;
@@ -48,6 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateUI();
 
     saveExpensesToLocalStorage(); // Save updated data to local storage
+    saveTotalSalaryToLocalStorage(); // Save total salary
+    saveCreditCardDueToLocalStorage(); // Save credit due
     resetInputs();
   }
 
@@ -186,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   <th data-column="type" class="sortable" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
                   <th data-column="paymentMethod" class="sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
                   <th data-column="netAmount" class="sortable" data-order="desc">Net Amount<span class="sort-icon">&#9660;</span></th>
+                  <th>Action</th>
               </tr>
           </thead>
           <tbody id="tbody-${date}">
@@ -207,6 +210,20 @@ document.addEventListener("DOMContentLoaded", () => {
         td.textContent = value;
         tr.appendChild(td);
       });
+
+      // Create the action button cell
+      const actionCell = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "btn btn-danger btn-sm";
+      deleteButton.onclick = function () {
+        expenseTracker.deleteRow(this);
+      };
+      const icon = document.createElement("i");
+      icon.className = "bi bi-trash";
+      deleteButton.appendChild(icon);
+      actionCell.appendChild(deleteButton);
+      tr.appendChild(actionCell);
+
       tbody.appendChild(tr);
       totalNetAmount += row.netAmount;
     });
@@ -246,10 +263,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateSortIcons(table, th, order) {
     table.querySelectorAll(".sort-icon").forEach((icon) => {
-      icon.innerHTML = "&#9660;";
+      icon.classList.remove("asc", "desc");
+      icon.innerHTML = "&#9660;"; // Default icon
     });
+
     const sortIcon = th.querySelector(".sort-icon");
     sortIcon.innerHTML = order === "asc" ? "&#9650;" : "&#9660;";
+    sortIcon.classList.add(order); // Add 'asc' or 'desc' class
   }
 
   function toggleSortOrder() {
@@ -318,11 +338,28 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("expensesByDate", JSON.stringify(expensesByDate));
   }
 
+  function saveTotalSalaryToLocalStorage() {
+    localStorage.setItem("totalSalary", totalSalary);
+  }
+
+  function saveCreditCardDueToLocalStorage() {
+    localStorage.setItem("creditCardDue", creditDue);
+  }
+
   function loadExpensesFromLocalStorage() {
     const savedData = localStorage.getItem("expensesByDate");
     return savedData ? JSON.parse(savedData) : {};
   }
 
+  function loadTotalSalaryFromLocalStorage() {
+    const savedSalary = localStorage.getItem("totalSalary");
+    return savedSalary ? parseFloat(savedSalary) : null;
+  }
+
+  function loadCreditCardDueFromLocalStorage() {
+    const savedCreditDue = localStorage.getItem("creditCardDue");
+    return savedCreditDue ? parseFloat(savedCreditDue) : null;
+  }
   function initializeUI() {
     Object.keys(expensesByDate).forEach((date) => {
       createNewDateSection(date);
@@ -334,7 +371,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function getLastWorkingDayOfMonth(year, month) {
     const lastDay = new Date(year, month + 1, 0); // Last day of the month
     const dayOfWeek = lastDay.getDay();
-
     if (dayOfWeek === 6) {
       lastDay.setDate(lastDay.getDate() - 1); // If Saturday, move to Friday
     } else if (dayOfWeek === 0) {
@@ -484,9 +520,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const netAmount = parseFloat(
       document.getElementById("editNetAmountInput").value
     );
-    const date =
-      currentRow.parentElement.previousElementSibling.textContent.trim(); // Get date from section title
-
+    const date = currentRow.parentElement
+      .closest(".date-section")
+      .querySelector("h2")
+      .textContent.trim();
+    console.log(date);
     if (currentCell) {
       const rowIndex = parseInt(
         document.getElementById("editRowIndex").value,
@@ -504,7 +542,6 @@ document.addEventListener("DOMContentLoaded", () => {
       cells[1].textContent = type;
       cells[2].textContent = paymentMethod;
       cells[3].textContent = netAmount;
-
       // **Update global data**
       if (expensesByDate[date]) {
         expensesByDate[date][rowIndex] = {
@@ -513,7 +550,6 @@ document.addEventListener("DOMContentLoaded", () => {
           paymentMethod,
           netAmount,
         };
-
         // **Recalculate totalSalary and creditDue**
         totalSalary = 0;
         creditDue = 0;
@@ -533,9 +569,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateSummary(); // **Update UI summary**
         saveExpensesToLocalStorage(); // **Save updated data to local storage**
+        saveTotalSalaryToLocalStorage(); // Save updated total salary
+        saveCreditCardDueToLocalStorage(); // Save updated credit due
       }
 
       $(editModal).modal("hide");
+      initializeUI();
     }
   }
 
