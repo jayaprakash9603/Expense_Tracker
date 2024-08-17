@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editable Table with Bootstrap Modals</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css"
+    />
+    <style>
+      .table-container {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        table-layout: fixed;
+      }
+      th,
+      td {
+        text-align: center;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      td {
+        position: relative;
+      }
+      .edit-icon {
+        cursor: pointer;
+        font-size: 1.2em;
+        margin-left: 0.5em;
+      }
+      .modal-body input,
+      .modal-body select {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <div class="table-container">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Amount</th>
+              <th>Type</th>
+              <th>Payment Method</th>
+              <th>Net Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>100</td>
+              <td>Loss</td>
+              <td>Cash</td>
+              <td>-100</td>
+            </tr>
+            <!-- Add more rows as needed -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal for editing -->
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Cell</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <div class="form-group">
+                <label for="editAmountInput">Amount</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="editAmountInput"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="editTypeSelect">Type</label>
+                <select class="form-control" id="editTypeSelect">
+                  <option value="loss">Loss</option>
+                  <option value="gain">Gain</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editPaymentMethodSelect">Payment Method</label>
+                <select class="form-control" id="editPaymentMethodSelect">
+                  <option value="cash">Cash</option>
+                  <option value="creditNeedToPaid">Credit (Need to Pay)</option>
+                  <option value="creditPaid">Credit (Paid)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editNetAmountInput">Net Amount</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="editNetAmountInput"
+                  readonly
+                />
+              </div>
+              <input type="hidden" id="editCellIndex" />
+              <input type="hidden" id="editRowIndex" />
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="saveButton">
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        let currentCell;
+        let currentRow;
+
+        // Setup double-click on table cells
+        document.querySelectorAll("td").forEach((cell) => {
+          cell.addEventListener("dblclick", function () {
+            currentCell = this;
+            currentRow = this.parentElement;
+            const cells = Array.from(currentRow.children);
+
+            // Set modal values
+            const amount = parseFloat(cells[0].textContent.trim());
+            const type = cells[1].textContent.trim();
+            const paymentMethod = cells[2].textContent.trim();
+            const netAmount = parseFloat(cells[3].textContent.trim());
+
+            document.getElementById("editAmountInput").value = amount;
+            document.getElementById("editTypeSelect").value = type;
+            document.getElementById("editPaymentMethodSelect").value =
+              paymentMethod;
+            document.getElementById("editNetAmountInput").value = netAmount;
+
+            // Set hidden inputs for the cell
+            const cellIndex = Array.from(currentRow.children).indexOf(this);
+            const rowIndex = Array.from(
+              this.parentElement.parentElement.children
+            ).indexOf(this.parentElement);
+            document.getElementById("editCellIndex").value = cellIndex;
+            document.getElementById("editRowIndex").value = rowIndex;
+
+            // Show the modal
+            $("#editModal").modal("show");
+          });
+        });
+
+        document.getElementById("saveButton").addEventListener("click", () => {
+          const amount = parseFloat(
+            document.getElementById("editAmountInput").value
+          );
+          const type = document.getElementById("editTypeSelect").value;
+          const paymentMethod = document.getElementById(
+            "editPaymentMethodSelect"
+          ).value;
+          const netAmount = parseFloat(
+            document.getElementById("editNetAmountInput").value
+          );
+
+          if (currentCell) {
+            const row = currentCell.parentElement;
+            const cells = Array.from(row.children);
+
+            // Update cells
+            cells[0].textContent = amount;
+            cells[1].textContent = type;
+            cells[2].textContent = paymentMethod;
+            cells[3].textContent = netAmount;
+
+            // Close the modal
+            $("#editModal").modal("hide");
+          }
+        });
+
+        // Update net amount field based on the amount input
+        document
+          .getElementById("editAmountInput")
+          .addEventListener("input", updateNetAmount);
+        document
+          .getElementById("editNetAmountInput")
+          .addEventListener("input", updateAmount);
+
+        function updateNetAmount() {
+          const amount = parseFloat(
+            document.getElementById("editAmountInput").value
+          );
+          const type = document.getElementById("editTypeSelect").value;
+          const netAmount = type === "gain" ? amount : -amount;
+          document.getElementById("editNetAmountInput").value = netAmount;
+        }
+
+        function updateAmount() {
+          const netAmount = parseFloat(
+            document.getElementById("editNetAmountInput").value
+          );
+          const type = document.getElementById("editTypeSelect").value;
+          const amount = type === "gain" ? netAmount : -netAmount;
+          document.getElementById("editAmountInput").value = amount;
+        }
+      });
+    </script>
+  </body>
+</html>
