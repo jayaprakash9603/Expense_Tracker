@@ -31,14 +31,16 @@
       td {
         position: relative;
       }
-      .edit-icon {
-        cursor: pointer;
-        font-size: 1.2em;
-        margin-left: 0.5em;
-      }
       .modal-body input,
       .modal-body select {
         width: 100%;
+      }
+      .hidden {
+        display: none;
+      }
+      .readonly {
+        background-color: #f1f1f1;
+        cursor: not-allowed;
       }
     </style>
   </head>
@@ -57,9 +59,9 @@
           <tbody>
             <tr>
               <td>100</td>
-              <td>Loss</td>
+              <td>Gain</td>
               <td>Cash</td>
-              <td>-100</td>
+              <td>100</td>
             </tr>
             <!-- Add more rows as needed -->
           </tbody>
@@ -103,8 +105,8 @@
               <div class="form-group">
                 <label for="editTypeSelect">Type</label>
                 <select class="form-control" id="editTypeSelect">
-                  <option value="loss">Loss</option>
                   <option value="gain">Gain</option>
+                  <option value="loss">Loss</option>
                 </select>
               </div>
               <div class="form-group">
@@ -154,39 +156,103 @@
         let currentCell;
         let currentRow;
 
-        // Setup double-click on table cells
-        document.querySelectorAll("td").forEach((cell) => {
-          cell.addEventListener("dblclick", function () {
-            currentCell = this;
-            currentRow = this.parentElement;
-            const cells = Array.from(currentRow.children);
+        /**
+         * Set modal values based on the current cell and row.
+         */
+        function setModalValues() {
+          const cells = Array.from(currentRow.children);
 
-            // Set modal values
-            const amount = parseFloat(cells[0].textContent.trim());
-            const type = cells[1].textContent.trim();
-            const paymentMethod = cells[2].textContent.trim();
-            const netAmount = parseFloat(cells[3].textContent.trim());
+          document.getElementById("editAmountInput").value = parseFloat(
+            cells[0].textContent.trim()
+          );
+          document.getElementById("editTypeSelect").value =
+            cells[1].textContent.trim();
+          document.getElementById("editPaymentMethodSelect").value =
+            cells[2].textContent.trim();
+          document.getElementById("editNetAmountInput").value = parseFloat(
+            cells[3].textContent.trim()
+          );
 
-            document.getElementById("editAmountInput").value = amount;
-            document.getElementById("editTypeSelect").value = type;
-            document.getElementById("editPaymentMethodSelect").value =
-              paymentMethod;
-            document.getElementById("editNetAmountInput").value = netAmount;
+          document.getElementById("editCellIndex").value = Array.from(
+            currentRow.children
+          ).indexOf(currentCell);
+          document.getElementById("editRowIndex").value = Array.from(
+            currentRow.parentElement.children
+          ).indexOf(currentRow);
 
-            // Set hidden inputs for the cell
-            const cellIndex = Array.from(currentRow.children).indexOf(this);
-            const rowIndex = Array.from(
-              this.parentElement.parentElement.children
-            ).indexOf(this.parentElement);
-            document.getElementById("editCellIndex").value = cellIndex;
-            document.getElementById("editRowIndex").value = rowIndex;
+          $("#editModal").modal("show");
+        }
 
-            // Show the modal
-            $("#editModal").modal("show");
-          });
-        });
+        /**
+         * Update Type and Net Amount based on the current inputs.
+         */
+        function updateTypeAndNetAmount() {
+          const amount = parseFloat(
+            document.getElementById("editAmountInput").value
+          );
+          const typeSelect = document.getElementById("editTypeSelect");
+          const paymentMethodSelect = document.getElementById(
+            "editPaymentMethodSelect"
+          );
 
-        document.getElementById("saveButton").addEventListener("click", () => {
+          // Set Type to Loss and disable it if Amount is negative
+          if (amount < 0) {
+            typeSelect.value = "loss";
+            typeSelect.classList.add("readonly");
+            typeSelect.setAttribute("disabled", "true");
+            document.getElementById("editNetAmountInput").value = amount;
+            updateNetAmount();
+            // paymentMethodSelect.value = "creditNeedToPaid";
+            // paymentMethodSelect.classList.add("readonly");
+            // paymentMethodSelect.setAttribute("disabled", "true");
+          } else {
+            updateNetAmount();
+            typeSelect.classList.remove("readonly");
+            typeSelect.removeAttribute("disabled");
+
+            // paymentMethodSelect.classList.remove("readonly");
+            // paymentMethodSelect.removeAttribute("disabled");
+          }
+
+          if (type == "gain") {
+            document.getElementById("editNetAmountInput").value =
+              Math.abs(amount);
+            updateNetAmount();
+          }
+          // Automatically set Type to Loss if Payment Method is Credit (Need to Pay)
+          if (paymentMethodSelect.value === "creditNeedToPaid") {
+            typeSelect.value = "loss";
+            document.getElementById("editNetAmountInput").value =
+              -Math.abs(amount);
+            typeSelect.classList.add("readonly");
+            typeSelect.setAttribute("disabled", "true");
+          }
+
+          updateNetAmount();
+        }
+
+        /**
+         * Update Net Amount based on the Type and Amount values.
+         */
+        function updateNetAmount() {
+          const amount = parseFloat(
+            document.getElementById("editAmountInput").value
+          );
+          const type = document.getElementById("editTypeSelect").value;
+
+          const netAmount = type === "gain" ? amount : -amount;
+          if (amount < 0) {
+            netAmount = -amount;
+          } else if (type === "loss" && amount > 0) {
+            netamount = -amount;
+          }
+          document.getElementById("editNetAmountInput").value = netAmount;
+        }
+
+        /**
+         * Save changes to the table and close the modal.
+         */
+        function saveChanges() {
           const amount = parseFloat(
             document.getElementById("editAmountInput").value
           );
@@ -202,42 +268,37 @@
             const row = currentCell.parentElement;
             const cells = Array.from(row.children);
 
-            // Update cells
             cells[0].textContent = amount;
             cells[1].textContent = type;
             cells[2].textContent = paymentMethod;
             cells[3].textContent = netAmount;
 
-            // Close the modal
             $("#editModal").modal("hide");
           }
+        }
+
+        // Set up event listeners
+        document.querySelectorAll("td").forEach((cell) => {
+          cell.addEventListener("dblclick", function () {
+            currentCell = this;
+            currentRow = this.parentElement;
+            console.log(currentCell + "" + currentRow);
+            setModalValues();
+          });
         });
 
-        // Update net amount field based on the amount input
         document
           .getElementById("editAmountInput")
-          .addEventListener("input", updateNetAmount);
+          .addEventListener("input", updateTypeAndNetAmount);
         document
-          .getElementById("editNetAmountInput")
-          .addEventListener("input", updateAmount);
-
-        function updateNetAmount() {
-          const amount = parseFloat(
-            document.getElementById("editAmountInput").value
-          );
-          const type = document.getElementById("editTypeSelect").value;
-          const netAmount = type === "gain" ? amount : -amount;
-          document.getElementById("editNetAmountInput").value = netAmount;
-        }
-
-        function updateAmount() {
-          const netAmount = parseFloat(
-            document.getElementById("editNetAmountInput").value
-          );
-          const type = document.getElementById("editTypeSelect").value;
-          const amount = type === "gain" ? netAmount : -netAmount;
-          document.getElementById("editAmountInput").value = amount;
-        }
+          .getElementById("editPaymentMethodSelect")
+          .addEventListener("change", updateTypeAndNetAmount);
+        document
+          .getElementById("editTypeSelect")
+          .addEventListener("change", updateTypeAndNetAmount);
+        document
+          .getElementById("saveButton")
+          .addEventListener("click", saveChanges);
       });
     </script>
   </body>

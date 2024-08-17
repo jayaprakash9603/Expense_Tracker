@@ -51,6 +51,8 @@ th,
 td {
   padding: 10px;
   text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 th {
@@ -161,4 +163,16 @@ input[readonly] {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.modal-body input,
+.modal-body select {
+  width: 100%;
+}
+.hidden {
+  display: none;
+}
+.readonly {
+  background-color: #f1f1f1;
+  cursor: not-allowed;
 }

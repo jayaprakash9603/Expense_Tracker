@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalSalary = 0;
   let creditDue = 0;
   let sortOrderAscending = true;
+  let currentCell;
+  let currentRow;
   const expensesByDate = loadExpensesFromLocalStorage() || {};
 
   // Initialize DOM elements
@@ -329,7 +331,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSummary();
     sortAndDisplaySections();
   }
-
   function getLastWorkingDayOfMonth(year, month) {
     const lastDay = new Date(year, month + 1, 0); // Last day of the month
     const dayOfWeek = lastDay.getDay();
@@ -374,4 +375,180 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Attach event listener
   document.getElementById("date").addEventListener("change", handleDateChange);
+
+  // Set up event listeners
+  document.querySelectorAll("td").forEach((cell) => {
+    cell.addEventListener("dblclick", function () {
+      currentCell = this;
+      currentRow = this.parentElement;
+      console.log(currentCell + "" + currentRow);
+      setModalValues();
+    });
+  });
+
+  /**
+   * Set modal values based on the current cell and row.
+   */
+  function setModalValues() {
+    const cells = Array.from(currentRow.children);
+
+    document.getElementById("editAmountInput").value = parseFloat(
+      cells[0].textContent.trim()
+    );
+    document.getElementById("editTypeSelect").value =
+      cells[1].textContent.trim();
+    document.getElementById("editPaymentMethodSelect").value =
+      cells[2].textContent.trim();
+    document.getElementById("editNetAmountInput").value = parseFloat(
+      cells[3].textContent.trim()
+    );
+
+    document.getElementById("editCellIndex").value = Array.from(
+      currentRow.children
+    ).indexOf(currentCell);
+    document.getElementById("editRowIndex").value = Array.from(
+      currentRow.parentElement.children
+    ).indexOf(currentRow);
+
+    $("#editModal").modal("show");
+  }
+  /**
+   * Update Type and Net Amount based on the current inputs.
+   */
+  function updateTypeAndNetAmount() {
+    const amount = parseFloat(document.getElementById("editAmountInput").value);
+    const typeSelect = document.getElementById("editTypeSelect");
+    const paymentMethodSelect = document.getElementById(
+      "editPaymentMethodSelect"
+    );
+
+    // Set Type to Loss and disable it if Amount is negative
+    if (amount < 0) {
+      typeSelect.value = "loss";
+      typeSelect.classList.add("readonly");
+      typeSelect.setAttribute("disabled", "true");
+      document.getElementById("editNetAmountInput").value = amount;
+      updateNetAmount();
+      // paymentMethodSelect.value = "creditNeedToPaid";
+      // paymentMethodSelect.classList.add("readonly");
+      // paymentMethodSelect.setAttribute("disabled", "true");
+    } else {
+      updateNetAmount();
+      typeSelect.classList.remove("readonly");
+      typeSelect.removeAttribute("disabled");
+
+      // paymentMethodSelect.classList.remove("readonly");
+      // paymentMethodSelect.removeAttribute("disabled");
+    }
+
+    if (type == "gain") {
+      document.getElementById("editNetAmountInput").value = Math.abs(amount);
+      updateNetAmount();
+    }
+    // Automatically set Type to Loss if Payment Method is Credit (Need to Pay)
+    if (paymentMethodSelect.value === "creditNeedToPaid") {
+      typeSelect.value = "loss";
+      document.getElementById("editNetAmountInput").value = -Math.abs(amount);
+      typeSelect.classList.add("readonly");
+      typeSelect.setAttribute("disabled", "true");
+    }
+
+    updateNetAmount();
+  }
+
+  /**
+   * Update Net Amount based on the Type and Amount values.
+   */
+  function updateNetAmount() {
+    const amount = parseFloat(document.getElementById("editAmountInput").value);
+    const type = document.getElementById("editTypeSelect").value;
+
+    const netAmount = type === "gain" ? amount : -amount;
+    if (amount < 0) {
+      netAmount = -amount;
+    } else if (type === "loss" && amount > 0) {
+      netamount = -amount;
+    }
+    document.getElementById("editNetAmountInput").value = netAmount;
+  }
+
+  /**
+   * Save changes to the table and close the modal.
+   */
+  function saveChanges() {
+    const amount = parseFloat(document.getElementById("editAmountInput").value);
+    const type = document.getElementById("editTypeSelect").value;
+    const paymentMethod = document.getElementById(
+      "editPaymentMethodSelect"
+    ).value;
+    const netAmount = parseFloat(
+      document.getElementById("editNetAmountInput").value
+    );
+    const date =
+      currentRow.parentElement.previousElementSibling.textContent.trim(); // Get date from section title
+
+    if (currentCell) {
+      const rowIndex = parseInt(
+        document.getElementById("editRowIndex").value,
+        10
+      );
+      const cellIndex = parseInt(
+        document.getElementById("editCellIndex").value,
+        10
+      );
+      const row = currentRow;
+      const cells = Array.from(row.children);
+
+      // Update cells in the table
+      cells[0].textContent = amount;
+      cells[1].textContent = type;
+      cells[2].textContent = paymentMethod;
+      cells[3].textContent = netAmount;
+
+      // **Update global data**
+      if (expensesByDate[date]) {
+        expensesByDate[date][rowIndex] = {
+          amount,
+          type,
+          paymentMethod,
+          netAmount,
+        };
+
+        // **Recalculate totalSalary and creditDue**
+        totalSalary = 0;
+        creditDue = 0;
+
+        Object.keys(expensesByDate).forEach((date) => {
+          expensesByDate[date].forEach((expense) => {
+            if (expense.paymentMethod === "creditNeedToPaid") {
+              creditDue += expense.amount;
+              totalSalary -= expense.amount;
+            } else if (expense.paymentMethod === "creditPaid") {
+              creditDue -= expense.amount;
+            } else {
+              totalSalary += expense.netAmount;
+            }
+          });
+        });
+
+        updateSummary(); // **Update UI summary**
+        saveExpensesToLocalStorage(); // **Save updated data to local storage**
+      }
+
+      $(editModal).modal("hide");
+    }
+  }
+
+  document
+    .getElementById("editAmountInput")
+    .addEventListener("input", updateTypeAndNetAmount);
+  document
+    .getElementById("editPaymentMethodSelect")
+    .addEventListener("change", updateTypeAndNetAmount);
+  document
+    .getElementById("editTypeSelect")
+    .addEventListener("change", updateTypeAndNetAmount);
+  document
+    .getElementById("editSaveButton")
+    .addEventListener("click", saveChanges);
 });
