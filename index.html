@@ -16,35 +16,43 @@
   </head>
   <body>
     <div class="container">
-      <div class="header-section">
-        <div class="input-container">
-          <div class="input-row">
-            <h1>Monthly Expense Tracker</h1>
-            <input type="number" id="editableInput" value="0" readonly />
-            <button id="saveButton" style="display: none">Save</button>
-            <!-- <button id="saveButton">Save</button> -->
-          </div>
+      <div class="input-row">
+        <h1>Expense Tracker</h1>
+        <div class="salaryDisplay">
+          <h3 id="yourSalary">YOUR SALARY</h3>
+          <input type="number" id="editableInput" value="0" readonly />
+          <button id="saveButton" style="display: none">Save</button>
         </div>
+
+        <!-- <button id="saveButton">Save</button> -->
       </div>
 
       <div class="input-section">
-        <div class="dateInput">
-          <label for="date">Date:</label>
-          <input type="date" id="date" />
+        <div class="expenseName">
+          <input
+            type="text"
+            placeholder="Enter Expense Name"
+            id="expenseName"
+          />
         </div>
         <div class="amountInput">
-          <label for="amount">Amount:</label>
-          <input type="number" id="amount" />
+          <!-- <label for="amount">Amount:</label> -->
+          <input type="number" id="amount" placeholder="Enter Amount" />
         </div>
+        <div class="dateInput">
+          <!-- <label for="date">Date:</label> -->
+          <input type="date" id="date" />
+        </div>
+
         <div class="typeInput">
-          <label for="type">Type:</label>
+          <!-- <label for="type">Type:</label> -->
           <select id="type">
             <option value="gain">Gain</option>
             <option value="loss">Loss</option>
           </select>
         </div>
         <div class="paymentInput">
-          <label for="paymentMethod">Payment Method:</label>
+          <!-- <label for="paymentMethod">Payment Method:</label> -->
           <select id="paymentMethod">
             <option value="cash">Cash</option>
             <option value="creditNeedToPaid">Credit Card</option>
@@ -57,12 +65,20 @@
 
         <!-- <span id="errorMessage" class="error">Please enter a valid number</span> -->
       </div>
-      <div class="search-section">
-        <label for="searchDate">Search by Date:</label>
-        <input type="date" id="searchDate" />
-        <button id="searchButton">Search</button>
+      <div class="tableHeaderSection">
+        <div class="plusIconDiv">
+          <i class="bi bi-plus"></i>
+        </div>
+
+        <div class="search-section">
+          <label for="searchDate">Search by Date:</label>
+          <input type="date" id="searchDate" min="2002-01-15" />
+          <!-- <button id="searchButton">Search</button> -->
+        </div>
+        <div class="sortButtonDiv">
+          <button id="sortButton">Sort(Asc)</button>
+        </div>
       </div>
-      <button id="sortButton">Sort by Date (Ascending)</button>
 
       <div id="expenseSections">
         <!-- Expense tables will be dynamically added here -->

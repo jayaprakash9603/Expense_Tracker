@@ -28,7 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event listeners
   addExpenseButton.addEventListener("click", handleAddExpense);
   sortButton.addEventListener("click", toggleSortOrder);
-  searchButton.addEventListener("click", handleSearchByDate);
+  // searchButton.addEventListener("click", handleSearchByDate);
+  searchDateInput.addEventListener("input", function () {
+    if (this.value) {
+      handleSearchByDate();
+    }
+  });
   setupEditableInput();
 
   // Helper Functions
@@ -80,16 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let netAmount = amount;
 
     if (type === "loss") {
-      netAmount = -amount;
+      netAmount = -Math.abs(amount);
     }
 
     switch (paymentMethod) {
       case "creditNeedToPaid":
         creditDue += amount;
-        totalSalary -= amount;
         break;
       case "creditPaid":
         creditDue -= amount;
+        totalSalary -= amount;
         netAmount = 0;
         break;
       default:
@@ -161,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ? new Date(a) - new Date(b)
         : new Date(b) - new Date(a);
     });
-
     expenseSections.innerHTML = "";
     dates.forEach((date) => {
       createNewDateSection(date);
@@ -279,9 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateSortButtonLabel() {
-    sortButton.innerText = sortOrderAscending
-      ? "Sort by Date (Ascending)"
-      : "Sort by Date (Descending)";
+    sortButton.innerText = sortOrderAscending ? "Sort(Asc)" : "Sort(Desc)";
   }
 
   function getTodayDate() {
