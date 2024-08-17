@@ -55,7 +55,10 @@ td {
 th {
   background-color: #f2f2f2;
 }
-
+.sort-icon {
+  font-size: 0.8rem;
+  margin-left: 20px;
+}
 .date-section {
   margin: 20px 0;
 }

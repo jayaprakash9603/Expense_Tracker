@@ -172,19 +172,21 @@ document.addEventListener("DOMContentLoaded", () => {
     section.appendChild(title);
 
     const table = document.createElement("table");
+    table.classList.add("my-table");
     table.innerHTML = `
           <thead>
-              <tr>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Payment Method</th>
-                  <th>Net Amount</th>
+              <tr class="table-row">
+                  <th class="amount-column sortable" id="amount-column" data-order="desc">Amount<span class="sort-icon">&#9660;</span></th>
+                  <th class="type-column sortable" id="type-column" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
+                  <th id="payment-column " class="payment-column sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
+                  <th id="netAmount-column" class="netAmount-column sortable" data-order="desc">Net Amount<span class="sort-icon">&#9660;</span></th>
               </tr>
           </thead>
           <tbody id="tbody-${date}">
           </tbody>
       `;
     section.appendChild(table);
+    console.log(table);
 
     expenseSections.appendChild(section);
   }
