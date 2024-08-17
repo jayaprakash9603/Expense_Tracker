@@ -19,90 +19,80 @@
     </style>
   </head>
   <body>
-    <div class="container mt-5">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th class="sortable" data-column="amount" data-order="desc">
-              Amount <span class="sort-icon">&#9660;</span>
-            </th>
-            <th class="sortable" data-column="type" data-order="desc">
-              Type <span class="sort-icon">&#9660;</span>
-            </th>
-            <th class="sortable" data-column="paymentMethod" data-order="desc">
-              Payment Method <span class="sort-icon">&#9660;</span>
-            </th>
-            <th class="sortable" data-column="netAmount" data-order="desc">
-              Net Amount <span class="sort-icon">&#9660;</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Table rows will be inserted here by JavaScript -->
-        </tbody>
-      </table>
+    <div class="container mt-5" id="tablesContainer">
+      <!-- Tables will be dynamically inserted here -->
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-      const tableData = [
-        { amount: 2000, type: "gain", paymentMethod: "cash", netAmount: 2000 },
-        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 4000, type: "loss", paymentMethod: "cash", netAmount: -4000 },
-        {
-          amount: 30000,
-          type: "gain",
-          paymentMethod: "cash",
-          netAmount: 30000,
-        },
-        { amount: 300, type: "gain", paymentMethod: "cash", netAmount: 300 },
-        { amount: 4000, type: "loss", paymentMethod: "cash", netAmount: -4000 },
-        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
-        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        {
-          amount: 30000,
-          type: "loss",
-          paymentMethod: "cash",
-          netAmount: -30000,
-        },
-        { amount: 3000, type: "loss", paymentMethod: "cash", netAmount: -3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: -3000, type: "loss", paymentMethod: "cash", netAmount: 3000 },
-        {
-          amount: -30000,
-          type: "loss",
-          paymentMethod: "cash",
-          netAmount: 30000,
-        },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        {
-          amount: -3000,
-          type: "gain",
-          paymentMethod: "cash",
-          netAmount: -3000,
-        },
-        {
-          amount: 981234,
-          type: "loss",
-          paymentMethod: "cash",
-          netAmount: -981234,
-        },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 3125, type: "loss", paymentMethod: "cash", netAmount: -3125 },
-        { amount: 3000, type: "gain", paymentMethod: "cash", netAmount: 3000 },
-        { amount: -3000, type: "loss", paymentMethod: "cash", netAmount: 3000 },
-        { amount: 2000, type: "loss", paymentMethod: "cash", netAmount: -2000 },
-      ];
+      const dataByDate = {
+        "2024-08-01": [
+          {
+            amount: 2000,
+            type: "gain",
+            paymentMethod: "cash",
+            netAmount: 2000,
+          },
+          {
+            amount: 3000,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -3000,
+          },
+        ],
+        "2024-08-02": [
+          {
+            amount: 3000,
+            type: "gain",
+            paymentMethod: "cash",
+            netAmount: 3000,
+          },
+          {
+            amount: 4000,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -4000,
+          },
+        ],
+        // More date keys with their corresponding data arrays...
+      };
 
-      function renderTable(data) {
-        const tableBody = document.getElementById("tableBody");
-        tableBody.innerHTML = "";
+      function renderTableForDate(date, data) {
+        const tablesContainer = document.getElementById("tablesContainer");
+
+        const table = document.createElement("table");
+        table.classList.add("table", "table-bordered", "sortable-table");
+        table.setAttribute("data-date", date);
+
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th class="sortable" data-column="amount" data-order="desc">
+                Amount <span class="sort-icon">&#9660;</span>
+              </th>
+              <th class="sortable" data-column="type" data-order="desc">
+                Type <span class="sort-icon">&#9660;</span>
+              </th>
+              <th class="sortable" data-column="paymentMethod" data-order="desc">
+                Payment Method <span class="sort-icon">&#9660;</span>
+              </th>
+              <th class="sortable" data-column="netAmount" data-order="desc">
+                Net Amount <span class="sort-icon">&#9660;</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        `;
+
+        tablesContainer.appendChild(table);
+        renderTableRows(table, data);
+      }
+
+      function renderTableRows(table, data) {
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
         data.forEach((row) => {
           const tr = document.createElement("tr");
           Object.values(row).forEach((value) => {
@@ -110,11 +100,14 @@
             td.textContent = value;
             tr.appendChild(td);
           });
-          tableBody.appendChild(tr);
+          tbody.appendChild(tr);
         });
       }
 
-      function sortTable(column, order) {
+      function sortTable(table, column, order) {
+        const date = table.getAttribute("data-date");
+        const tableData = dataByDate[date];
+
         const sortedData = tableData.slice().sort((a, b) => {
           if (typeof a[column] === "string") {
             return order === "asc"
@@ -126,30 +119,35 @@
               : b[column] - a[column];
           }
         });
-        renderTable(sortedData);
+
+        renderTableRows(table, sortedData);
       }
 
-      document.querySelectorAll("th.sortable").forEach((th) => {
-        th.addEventListener("click", () => {
+      document.addEventListener("click", (event) => {
+        const th = event.target.closest("th.sortable");
+        if (th) {
+          const table = th.closest("table");
           const column = th.getAttribute("data-column");
           let order = th.getAttribute("data-order");
           order = order === "asc" ? "desc" : "asc";
           th.setAttribute("data-order", order);
-          sortTable(column, order);
-          updateSortIcons(th, order);
-        });
+          sortTable(table, column, order);
+          updateSortIcons(table, th, order);
+        }
       });
 
-      function updateSortIcons(th, order) {
-        document.querySelectorAll("th.sortable .sort-icon").forEach((icon) => {
+      function updateSortIcons(table, th, order) {
+        table.querySelectorAll(".sort-icon").forEach((icon) => {
           icon.innerHTML = "&#9660;";
         });
         const sortIcon = th.querySelector(".sort-icon");
         sortIcon.innerHTML = order === "asc" ? "&#9650;" : "&#9660;";
       }
 
-      // Initial render
-      renderTable(tableData);
+      // Initial rendering for each date
+      Object.keys(dataByDate).forEach((date) => {
+        renderTableForDate(date, dataByDate[date]);
+      });
     </script>
   </body>
 </html>

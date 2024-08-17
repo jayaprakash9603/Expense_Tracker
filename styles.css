@@ -3,10 +3,11 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
+  width: 100%;
 }
 
 .container {
-  width: 80%;
+  width: 100%;
   margin: 0 auto;
   padding: 20px;
   background-color: white;
@@ -54,6 +55,10 @@ td {
 
 th {
   background-color: #f2f2f2;
+}
+
+th.sortable:hover {
+  cursor: pointer;
 }
 .sort-icon {
   font-size: 0.8rem;
@@ -122,4 +127,38 @@ input[readonly] {
 .input-section {
   background-color: #8d949b;
   display: flex;
+  padding: 10px;
+  width: 100%;
+}
+.dateInput {
+  display: inline-block;
+  background-color: #007bff;
+  padding: 5px;
+  margin-right: 10px;
+}
+.amountInput {
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: aqua;
+}
+.typeInput {
+  margin-right: 10px;
+  background-color: burlywood;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.paymentInput {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: cadetblue;
+  margin-right: 10px;
+}
+.addExpenseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

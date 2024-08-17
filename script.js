@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!date || isNaN(amount)) {
       alert("Please enter valid data");
       return false;
-    } else if (type == "gain" && amount < 0) {
+    } else if (type === "gain" && amount < 0) {
       alert("Please enter positive number");
       return false;
     }
@@ -119,8 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateDateSection(date) {
     const tbody = document.getElementById(`tbody-${date}`);
-    tbody.innerHTML = "";
+    if (!tbody) return; // Check if tbody exists
 
+    const table = document.querySelector(`table[data-date='${date}']`);
+
+    tbody.innerHTML = "";
     let totalNetAmount = 0;
 
     expensesByDate[date].forEach((expense) => {
@@ -173,22 +176,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const table = document.createElement("table");
     table.classList.add("my-table");
+    table.setAttribute("data-date", date); // Set data-date attribute
     table.innerHTML = `
           <thead>
               <tr class="table-row">
-                  <th class="amount-column sortable" id="amount-column" data-order="desc">Amount<span class="sort-icon">&#9660;</span></th>
-                  <th class="type-column sortable" id="type-column" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
-                  <th id="payment-column " class="payment-column sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
-                  <th id="netAmount-column" class="netAmount-column sortable" data-order="desc">Net Amount<span class="sort-icon">&#9660;</span></th>
+                  <th data-column="amount" class="sortable" data-order="desc">Amount<span class="sort-icon">&#9660;</span></th>
+                  <th data-column="type" class="sortable" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
+                  <th data-column="paymentMethod" class="sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
+                  <th data-column="netAmount" class="sortable" data-order="desc">Net Amount<span class="sort-icon">&#9660;</span></th>
               </tr>
           </thead>
           <tbody id="tbody-${date}">
           </tbody>
       `;
     section.appendChild(table);
-    console.log(table);
-
     expenseSections.appendChild(section);
+  }
+
+  function renderTableRows(table, data) {
+    const tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+    let totalNetAmount = 0;
+
+    data.forEach((row) => {
+      const tr = document.createElement("tr");
+      Object.values(row).forEach((value) => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      totalNetAmount += row.netAmount;
+    });
+
+    addTotalRow(tbody, totalNetAmount);
+  }
+
+  function sortTable(table, column, order) {
+    const date = table.getAttribute("data-date");
+    const tableData = expensesByDate[date];
+
+    const sortedData = tableData.slice().sort((a, b) => {
+      if (typeof a[column] === "string") {
+        return order === "asc"
+          ? a[column].localeCompare(b[column])
+          : b[column].localeCompare(a[column]);
+      } else {
+        return order === "asc" ? a[column] - b[column] : b[column] - a[column];
+      }
+    });
+
+    renderTableRows(table, sortedData);
+  }
+
+  document.addEventListener("click", (event) => {
+    const th = event.target.closest("th.sortable");
+    if (th) {
+      const table = th.closest("table");
+      const column = th.getAttribute("data-column");
+      let order = th.getAttribute("data-order");
+      order = order === "asc" ? "desc" : "asc";
+      th.setAttribute("data-order", order);
+      sortTable(table, column, order);
+      updateSortIcons(table, th, order);
+    }
+  });
+
+  function updateSortIcons(table, th, order) {
+    table.querySelectorAll(".sort-icon").forEach((icon) => {
+      icon.innerHTML = "&#9660;";
+    });
+    const sortIcon = th.querySelector(".sort-icon");
+    sortIcon.innerHTML = order === "asc" ? "&#9650;" : "&#9660;";
   }
 
   function toggleSortOrder() {
@@ -259,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function loadExpensesFromLocalStorage() {
     const savedData = localStorage.getItem("expensesByDate");
-    return savedData ? JSON.parse(savedData) : null;
+    return savedData ? JSON.parse(savedData) : {};
   }
 
   function initializeUI() {
@@ -270,10 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSummary();
     sortAndDisplaySections();
   }
-  const today = new Date().toISOString().split("T")[0];
-  dateInput.value = today;
 
-  const todayDate = new Date(today);
   function getLastWorkingDayOfMonth(year, month) {
     const lastDay = new Date(year, month + 1, 0); // Last day of the month
     const dayOfWeek = lastDay.getDay();
@@ -295,7 +351,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return date.toDateString() === lastWorkingDay.toDateString();
   }
 
-  console.log(todayDate);
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.value = today;
+
+  const todayDate = new Date(today);
   if (isSalaryDate(todayDate)) {
     typeInput.value = "gain";
   } else {
