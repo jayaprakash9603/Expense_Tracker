@@ -22,6 +22,7 @@
           <h3 id="yourSalary">YOUR SALARY</h3>
           <input type="number" id="editableInput" value="0" readonly />
           <button id="saveButton" style="display: none">Save</button>
+          <button id="showAllReasonsButton">all Reasons</button>
         </div>
 
         <!-- <button id="saveButton">Save</button> -->
@@ -168,6 +169,25 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+    <!-- Glassmorphism Modal -->
+    <div id="reason-modal" class="reason-modal">
+      <div class="reason-modal-content">
+        <span id="close-reason-modal-btn" class="close-reason-btn"
+          >&times;</span
+        >
+        <span>Expenses List</span>
+        <input type="text" />
+        <table id="reason-modal-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Expense Amount</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

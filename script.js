@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load and display data from local storage
   initializeUI();
 
-  console.log(expenseNameInput.value);
+  // console.log(expenseNameInput.value);
   // Event listeners
   addExpenseButton.addEventListener("click", handleAddExpense);
   sortButton.addEventListener("click", toggleSortOrder);
@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function sortTable(table, column, order) {
     const date = table.getAttribute("data-date");
     const tableData = expensesByDate[date];
-    console.log(tableData);
+    // console.log(tableData);
     const sortedData = tableData.slice().sort((a, b) => {
       if (typeof a[column] === "string") {
         return order === "asc"
@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return order === "asc" ? a[column] - b[column] : b[column] - a[column];
       }
     });
-    console.log(sortedData);
+    // console.log(sortedData);
     renderTableRows(table, sortedData);
     // Add event listeners for Add and Delete buttons
     const editButton = document.getElementById("edit-btn");
@@ -730,7 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("editSaveButton")
     .addEventListener("click", saveChanges);
-  console.log(expensesByDate);
+  // console.log(expensesByDate);
 
   function showPopup(event) {
     // Prevent default click behavior
@@ -752,4 +752,76 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  function showReasons(date) {
+    const modal = document.getElementById("reason-modal");
+    const modalTableBody = document
+      .getElementById("reason-modal-table")
+      .getElementsByTagName("tbody")[0];
+
+    modalTableBody.innerHTML = ""; // Clear previous reasons
+
+    if (reasonsByDate[date]) {
+      reasonsByDate[date].forEach((detail) => {
+        const [reason, amount] = detail.split("-");
+        const newRow = modalTableBody.insertRow();
+        const dateCell = newRow.insertCell(0);
+        const reasonCell = newRow.insertCell(1);
+        dateCell.textContent = date;
+        reasonCell.textContent = `${reason}-${amount}`;
+      });
+
+      modal.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function showAllReasons() {
+    const modal = document.getElementById("reason-modal");
+    const modalTableBody = document
+      .getElementById("reason-modal-table")
+      .getElementsByTagName("tbody")[0];
+
+    modalTableBody.innerHTML = ""; // Clear previous reasons
+
+    Object.keys(expensesByDate).forEach((date) => {
+      expensesByDate[date].forEach((detail) => {
+        // Assuming each detail is an object with the expenseName property
+        const expenseName = detail.expenseName; // Extract the expenseName
+
+        // Print the expenseName
+        console.log(expenseName);
+
+        // Create a new row in the modal table
+        const newRow = modalTableBody.insertRow();
+        const dateCell = newRow.insertCell(0);
+        const reasonCell = newRow.insertCell(1);
+
+        // Populate cells with the date and expenseName
+        dateCell.textContent = date; // Set date in date cell
+        reasonCell.textContent = `${expenseName} - ${detail.amount}`; // Set expenseName in reason cell
+      });
+    });
+
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+
+  document
+    .getElementById("showAllReasonsButton")
+    .addEventListener("click", showAllReasons);
+
+  document
+    .getElementById("close-reason-modal-btn")
+    .addEventListener("click", function () {
+      document.getElementById("reason-modal").style.display = "none";
+      document.body.style.overflow = "";
+    });
+
+  window.addEventListener("click", function (event) {
+    if (event.target === document.getElementById("modal")) {
+      document.getElementById("reason-modal").style.display = "none";
+      document.body.style.overflow = "";
+    }
+  });
 });
