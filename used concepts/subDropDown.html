@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Dropdown Menu</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Basic reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .paymentInput {
+        position: relative;
+        margin: 20px;
+      }
+
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropbtn {
+        background-color: #333;
+        color: white;
+        padding: 10px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #333;
+        min-width: 160px;
+        z-index: 1;
+      }
+
+      .dropdown-content a {
+        color: white;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+      }
+
+      .dropdown-content a:hover {
+        background-color: #555;
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      .nested-dropdown {
+        position: relative;
+      }
+
+      .nested-title {
+        color: white;
+        padding: 12px 16px;
+        background-color: #444;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .nested-content {
+        display: none;
+        background-color: #555;
+        position: absolute;
+        left: 165px;
+        top: 40px;
+      }
+
+      .nested-dropdown:hover .nested-content {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="paymentInput">
+      <div class="dropdown">
+        <button class="dropbtn">Select Payment Method</button>
+        <div class="dropdown-content">
+          <div class="nested-dropdown">
+            <div class="nested-title">Cash</div>
+            <div class="nested-content">
+              <a href="#">PhonePe</a>
+              <a href="#">Google Pay</a>
+            </div>
+          </div>
+          <a href="#" data-value="creditNeedToPaid">Credit Card</a>
+          <a href="#" data-value="creditPaid">Credit Card Paid</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -5,38 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Expense Tracker</title>
     <style>
-      .error {
-        color: red;
+      /* Modal container */
+      .modal {
         display: none;
-      }
-      .table-container {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        max-width: 800px;
-        height: 300px; /* Fixed height for the container */
-        margin-top: 20px;
-        border: 1px solid black;
-        overflow: auto; /* Add scrollbar if needed for the container */
+        height: 100%;
+        background: rgba(
+          0,
+          0,
+          0,
+          0.4
+        ); /* Slightly darker semi-transparent background */
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* Prevent scrolling of modal background */
+        transition: opacity 0.3s ease, visibility 0.3s ease;
       }
+
+      .modal.show {
+        display: flex;
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal.hide {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* Modal content with neuromorphism effect */
+      .modal-content {
+        background: #e0e0e0; /* Light background */
+        border-radius: 15px;
+        padding: 20px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 8px 8px 15px rgba(0, 0, 0, 0.2),
+          -8px -8px 15px rgba(255, 255, 255, 0.5); /* Neuromorphism shadow */
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        max-height: 80vh; /* Limit height of modal */
+        overflow-y: auto; /* Make modal content scrollable */
+        position: relative;
+      }
+
+      .modal-content:hover {
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2),
+          -4px -4px 10px rgba(255, 255, 255, 0.5); /* Light hover effect */
+        transform: translateY(-5px); /* Slight lift on hover */
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+
+      .close-btn:hover {
+        color: #ff6b6b; /* Change color on hover */
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
-        table-layout: fixed; /* Ensure fixed table layout */
+        margin-top: 20px;
       }
-      th,
-      td {
-        border: 1px solid black;
+
+      table th,
+      table td {
         padding: 10px;
+        border: 1px solid #ddd;
         text-align: left;
-        overflow: hidden;
-        word-wrap: break-word; /* Ensure text wraps and does not overflow */
-        white-space: normal; /* Allow text to wrap to the next line */
-        height: 50px; /* Set a fixed height for cells */
       }
-      th {
-        background-color: #f2f2f2;
+
+      table th {
+        background-color: #f0f0f0; /* Light header color */
       }
-      .cell-content {
-        overflow: auto; /* Add scrollbar if content overflows */
+
+      /* Custom scrollbar styles for WebKit browsers */
+      .modal-content::-webkit-scrollbar {
+        width: 8px; /* Decrease width of scrollbar */
+      }
+
+      .modal-content::-webkit-scrollbar-track {
+        background: #e0e0e0; /* Track color */
+      }
+
+      .modal-content::-webkit-scrollbar-thumb {
+        background: #b0b0b0; /* Scrollbar color */
+        border-radius: 10px; /* Round scrollbar corners */
+      }
+
+      .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #a0a0a0; /* Darker color on hover */
+      }
+
+      /* Custom scrollbar styles for Firefox */
+      .modal-content {
+        scrollbar-width: thin; /* Use thin scrollbar for Firefox */
+        scrollbar-color: #b0b0b0 #e0e0e0; /* Scrollbar color for Firefox */
       }
     </style>
   </head>
@@ -112,6 +188,24 @@
       </table>
     </div>
 
+    <!-- Glassmorphism Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span id="close-modal-btn" class="close-btn">&times;</span>
+        <span>Reasons</span>
+        <input type="text" />
+        <table id="modal-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Expense Amount</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
     <script>
       const reasonsByDate = {}; // Object to store reasons by date
 
@@ -143,61 +237,29 @@
         const today = new Date().toISOString().split("T")[0];
         dateInput.value = today;
 
-        const todayDate = new Date(today);
-        if (isSalaryDate(todayDate)) {
+        if (isSalaryDate(new Date(today))) {
           typeSelect.value = "gain";
-        } else {
-          typeSelect.value = "loss";
-        }
-      });
-
-      // Check if selected date is salary date
-      document.getElementById("date").addEventListener("change", (event) => {
-        const selectedDate = new Date(event.target.value);
-        const typeSelect = document.getElementById("typeSelect");
-
-        if (isSalaryDate(selectedDate)) {
-          typeSelect.value = "gain";
-        } else {
-          typeSelect.value = "loss";
         }
       });
 
       document
         .getElementById("addExpenseButton")
-        .addEventListener("click", () => {
-          const result = validateExpense();
-          if (result) {
-            addExpenseToTable();
-            console.log("Expense added successfully.");
-          } else {
-            console.log("Failed to add expense.");
-          }
-        });
+        .addEventListener("click", handleAddExpense);
 
-      function validateExpense() {
-        const amountInput = document.getElementById("amountInput");
-        const typeSelect = document.getElementById("typeSelect");
-        const errorMessage = document.getElementById("errorMessage");
-
-        const amountValue = parseFloat(amountInput.value.trim());
-        const selectedType = typeSelect.value;
-
-        if (selectedType === "gain" && amountValue < 0) {
-          errorMessage.style.display = "inline";
-          amountInput.focus();
-          return false; // Failure
-        } else {
-          errorMessage.style.display = "none";
-          return true; // Success
-        }
-      }
-
-      function addExpenseToTable() {
+      function handleAddExpense() {
         const dateInput = document.getElementById("date").value;
         const amountInput = document.getElementById("amountInput").value;
         const reasonInput = document.getElementById("reasonInput").value;
         const typeSelect = document.getElementById("typeSelect").value;
+
+        const errorMessage = document.getElementById("errorMessage");
+
+        if (amountInput <= 0 && typeSelect === "gain") {
+          errorMessage.style.display = "block";
+          return;
+        } else {
+          errorMessage.style.display = "none";
+        }
 
         const tableBody = document
           .getElementById("expensesTable")
@@ -207,17 +269,14 @@
         );
 
         if (existingRow) {
-          let totalCell = existingRow.cells[1];
-          let currentTotal = parseFloat(totalCell.textContent);
-          let newTotal =
-            currentTotal +
-            parseFloat(amountInput) * (typeSelect === "loss" ? -1 : 1);
-          totalCell.textContent = newTotal;
+          const totalCell = existingRow.cells[1];
+          const existingTotal = parseFloat(totalCell.textContent);
+          totalCell.textContent =
+            typeSelect === "loss"
+              ? existingTotal - parseFloat(amountInput)
+              : existingTotal + parseFloat(amountInput);
 
-          // Update reasons array
-          if (!reasonsByDate[dateInput]) {
-            reasonsByDate[dateInput] = [];
-          }
+          // Update reasons for existing date
           reasonsByDate[dateInput].push(`${reasonInput}-${amountInput}`);
         } else {
           const newRow = tableBody.insertRow();
@@ -249,15 +308,17 @@
       }
 
       function showReasons(date) {
-        const reasonTable = document.getElementById("reasonDetailsTable");
-        const reasonTableBody = reasonTable.getElementsByTagName("tbody")[0];
+        const modal = document.getElementById("modal");
+        const modalTableBody = document
+          .getElementById("modal-table")
+          .getElementsByTagName("tbody")[0];
 
-        reasonTableBody.innerHTML = ""; // Clear previous reasons
+        modalTableBody.innerHTML = ""; // Clear previous reasons
 
         if (reasonsByDate[date]) {
           reasonsByDate[date].forEach((detail) => {
             const [reason, amount] = detail.split("-");
-            const newRow = reasonTableBody.insertRow();
+            const newRow = modalTableBody.insertRow();
             const dateCell = newRow.insertCell(0);
             const reasonCell = newRow.insertCell(1);
 
@@ -265,21 +326,23 @@
             reasonCell.textContent = `${reason}-${amount}`;
           });
 
-          reasonTable.style.display = "table";
+          modal.style.display = "flex";
+          document.body.style.overflow = "hidden";
         }
       }
 
       function showAllReasons() {
-        const allReasonsTable = document.getElementById("allReasonsTable");
-        const allReasonsTableBody =
-          allReasonsTable.getElementsByTagName("tbody")[0];
+        const modal = document.getElementById("modal");
+        const modalTableBody = document
+          .getElementById("modal-table")
+          .getElementsByTagName("tbody")[0];
 
-        allReasonsTableBody.innerHTML = ""; // Clear previous reasons
+        modalTableBody.innerHTML = ""; // Clear previous reasons
 
         Object.keys(reasonsByDate).forEach((date) => {
           reasonsByDate[date].forEach((detail) => {
             const [reason, amount] = detail.split("-");
-            const newRow = allReasonsTableBody.insertRow();
+            const newRow = modalTableBody.insertRow();
             const dateCell = newRow.insertCell(0);
             const reasonCell = newRow.insertCell(1);
 
@@ -288,12 +351,27 @@
           });
         });
 
-        allReasonsTable.style.display = "table";
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
       }
 
       document
         .getElementById("showAllReasonsButton")
         .addEventListener("click", showAllReasons);
+
+      document
+        .getElementById("close-modal-btn")
+        .addEventListener("click", function () {
+          document.getElementById("modal").style.display = "none";
+          document.body.style.overflow = "";
+        });
+
+      window.addEventListener("click", function (event) {
+        if (event.target === document.getElementById("modal")) {
+          document.getElementById("modal").style.display = "none";
+          document.body.style.overflow = "";
+        }
+      });
     </script>
   </body>
 </html>
