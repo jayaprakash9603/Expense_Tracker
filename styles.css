@@ -303,7 +303,8 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
 input[type="date"]:hover::-webkit-calendar-picker-indicator:hover {
   opacity: 0.15;
 }
-.popup-menu {
+.popup-menu,
+#popup-menu {
   display: none;
   position: absolute;
   background-color: #f1f1f1;

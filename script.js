@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalSalaryElement = document.getElementById("totalSalary");
   const creditDueElement = document.getElementById("creditDue");
   const searchDateInput = document.getElementById("searchDate");
+  const popupMenuDiv = document.getElementById("popup-menu");
   // const searchButton = document.getElementById("searchButton");
 
   // Set default date to today
@@ -182,6 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Create icon element
       const icon = document.createElement("i");
       icon.className = "bi bi-three-dots-vertical iconClass";
+      icon.id = "iconID";
 
       // Create popup menu element
       const popupMenu = document.createElement("div");
@@ -213,8 +215,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteButton = document.getElementById("delete-btn");
 
   editButton.addEventListener("click", () => {
-    console.log("hello world");
-    addItem();
+    setModalValues();
+    // console.log("hello world");
+    // addItem();
   });
 
   deleteButton.addEventListener("click", () => {
@@ -529,15 +532,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("date").addEventListener("change", handleDateChange);
 
   // Set up event listeners
+  // document.querySelectorAll("td").forEach((cell) => {
+  //   cell.addEventListener("click", function () {
+  //     if (this.id === "edit-btn") {
+  //       // Check if the cell has the id 'edit-btn'
+  //       currentCell = this;
+  //       currentRow = this.parentElement;
+  //       console.log(currentCell + "" + currentRow);
+  //       setModalValues();
+  //     }
+  //   });
+  // });
+  // Set up event listeners for buttons within cells
   document.querySelectorAll("td").forEach((cell) => {
-    cell.addEventListener("dblclick", function () {
-      currentCell = this;
-      currentRow = this.parentElement;
-      console.log(currentCell + "" + currentRow);
-      setModalValues();
-    });
+    const button = cell.querySelector("#edit-btn");
+    if (button) {
+      button.addEventListener("click", function () {
+        currentCell = cell; // Set currentCell to the parent cell of the button
+        currentRow = cell.parentElement; // Set currentRow to the parent row of the cell
+        console.log("Current cell:", currentCell);
+        console.log("Current row:", currentRow);
+        setModalValues();
+        popupMenuDiv.display = "none";
+      });
+    }
   });
-
   /**
    * Set modal values based on the current cell and row.
    */
@@ -689,10 +708,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSummary(); // **Update UI summary**
         saveExpensesToLocalStorage(); // **Save updated data to local storage**
         saveTotalSalaryToLocalStorage(); // Save updated total salary
-        saveCreditCardDueToLocalStorage(); // Save updated credit due
+        saveCreditCardDueToLocalStorage();
+        updateUI(); // Save updated credit due
       }
 
       $(editModal).modal("hide");
+      popupMenu.display = "none";
       initializeUI();
     }
   }
