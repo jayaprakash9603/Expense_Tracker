@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const expensesByDate = loadExpensesFromLocalStorage() || {};
 
   // Initialize DOM elements
+  const expenseNameInput = document.getElementById("expenseName");
   const dateInput = document.getElementById("date");
   const amountInput = document.getElementById("amount");
   const typeInput = document.getElementById("type");
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalSalaryElement = document.getElementById("totalSalary");
   const creditDueElement = document.getElementById("creditDue");
   const searchDateInput = document.getElementById("searchDate");
-  const searchButton = document.getElementById("searchButton");
+  // const searchButton = document.getElementById("searchButton");
 
   // Set default date to today
   dateInput.value = getTodayDate();
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load and display data from local storage
   initializeUI();
 
+  console.log(expenseNameInput.value);
   // Event listeners
   addExpenseButton.addEventListener("click", handleAddExpense);
   sortButton.addEventListener("click", toggleSortOrder);
@@ -43,10 +45,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = parseFloat(amountInput.value);
     const type = typeInput.value;
     const paymentMethod = paymentMethodInput.value;
-    if (!validateInputs(date, amount, type)) return;
+    const expenseName = expenseNameInput.value;
+    if (!validateInputs(date, amount, type, expenseName)) return;
 
     const netAmount = calculateNetAmount(amount, type, paymentMethod);
-    updateExpensesByDate(date, amount, type, paymentMethod, netAmount);
+    updateExpensesByDate(
+      expenseName,
+      date,
+      amount,
+      type,
+      paymentMethod,
+      netAmount
+    );
 
     // Reset the view to show all dates
     updateUI();
@@ -69,14 +79,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function validateInputs(date, amount, type) {
+  function validateInputs(date, amount, type, expenseName) {
+    // Check if date is empty or amount is not a number
     if (!date || isNaN(amount)) {
-      alert("Please enter valid data");
-      return false;
-    } else if (type === "gain" && amount < 0) {
-      alert("Please enter positive number");
+      alert("Please enter valid data.");
       return false;
     }
+
+    // Check if amount is negative when type is "gain"
+    if (type === "gain" && amount < 0) {
+      alert("Please enter a positive number for gains.");
+      return false;
+    }
+
+    // Check if expense name is empty
+    if (!expenseName) {
+      alert("Please enter an expense name.");
+      return false;
+    }
+
     return true;
   }
 
@@ -104,13 +125,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return netAmount;
   }
 
-  function updateExpensesByDate(date, amount, type, paymentMethod, netAmount) {
+  function updateExpensesByDate(
+    expenseName,
+    date,
+    amount,
+    type,
+    paymentMethod,
+    netAmount
+  ) {
     if (!expensesByDate[date]) {
       expensesByDate[date] = [];
       createNewDateSection(date);
     }
 
     expensesByDate[date].push({
+      expenseName,
       amount,
       type,
       paymentMethod,
@@ -124,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetInputs() {
+    expenseNameInput.value = "";
     dateInput.value = getTodayDate();
     amountInput.value = "";
     typeInput.value = "loss";
@@ -141,23 +171,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
     expensesByDate[date].forEach((expense) => {
       const row = tbody.insertRow();
-      row.insertCell(0).innerText = expense.amount;
-      row.insertCell(1).innerText = expense.type;
-      row.insertCell(2).innerText = expense.paymentMethod;
-      row.insertCell(3).innerText = expense.netAmount;
-      row.insertCell(4).innerHTML = `<i class="bi bi-three-dots-vertical"></i>`;
+      row.insertCell(0).innerText = expense.expenseName;
+      row.insertCell(1).innerText = expense.amount;
+      row.insertCell(2).innerText = expense.type;
+      row.insertCell(3).innerText = expense.paymentMethod;
+      row.insertCell(4).innerText = expense.netAmount;
+
+      const actionCell = row.insertCell(5);
+
+      // Create icon element
+      const icon = document.createElement("i");
+      icon.className = "bi bi-three-dots-vertical iconClass";
+
+      // Create popup menu element
+      const popupMenu = document.createElement("div");
+      popupMenu.className = "popup-menu";
+      popupMenu.id = "popup-menu";
+      popupMenu.style.display = "none"; // Hide by default
+      popupMenu.innerHTML = `
+        <button class="edit-btn" id="edit-btn">Edit</button>
+        <button class="delete-btn" id="delete-btn">Delete</button>
+      `;
+
+      // Add event listener to toggle popup menu
+      icon.addEventListener("click", () => {
+        popupMenu.style.display =
+          popupMenu.style.display === "block" ? "none" : "block";
+      });
+
+      // Append elements to action cell
+      actionCell.appendChild(icon);
+      actionCell.appendChild(popupMenu);
+
       totalNetAmount += expense.netAmount;
     });
 
     addTotalRow(tbody, totalNetAmount);
   }
+  // Add event listeners for Add and Delete buttons
+  const editButton = document.getElementById("edit-btn");
+  const deleteButton = document.getElementById("delete-btn");
 
+  editButton.addEventListener("click", () => {
+    console.log("hello world");
+    addItem();
+  });
+
+  deleteButton.addEventListener("click", () => {
+    deleteItem();
+  });
+  // Example functions to be triggered by the buttons
+  function addItem(expense) {
+    alert(`Adding item: `);
+    // Your logic for adding an item goes here
+  }
+
+  function deleteItem(expense, row) {
+    alert(`Deleting item: `);
+    // Your logic for deleting an item goes here
+    row.remove(); // Example of removing the row from the table
+  }
   function addTotalRow(tbody, totalNetAmount) {
     const totalRow = tbody.insertRow();
     totalRow.insertCell(0).innerText = "";
     totalRow.insertCell(1).innerText = "";
-    totalRow.insertCell(2).innerText = "Total Net Amount";
-    totalRow.insertCell(3).innerText = totalNetAmount;
+    totalRow.insertCell(2).innerText = "";
+    totalRow.insertCell(3).innerText = "Total Net Amount";
+    totalRow.insertCell(4).innerText = totalNetAmount;
   }
 
   function updateSummary() {
@@ -193,6 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     table.innerHTML = `
           <thead>
               <tr class="table-row">
+                  <th data-column="expense" class="sortable" data-order="desc">Expense Name<span class="sort-icon">&#9660;</span></th>
                   <th data-column="amount" class="sortable" data-order="desc">Amount<span class="sort-icon">&#9660;</span></th>
                   <th data-column="type" class="sortable" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
                   <th data-column="paymentMethod" class="sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
@@ -228,11 +309,28 @@ document.addEventListener("DOMContentLoaded", () => {
       //   expenseTracker.deleteRow(this);
       // };
       const icon = document.createElement("i");
-      icon.className = "bi bi-three-dots-vertical";
-      // deleteButton.appendChild(icon);
+      icon.className = "bi bi-three-dots-vertical iconClass";
+      icon.id = "iconID";
+
+      // Add an event listener to the icon to show the popup
+      icon.addEventListener("click", function (event) {
+        showPopup(event);
+      });
+
+      // Create the popup menu
+      const popupMenu = document.createElement("div");
+      popupMenu.className = "popup-menu";
+      popupMenu.innerHTML = `
+        <button class="edit-btn" id="edit-btn">Edit</button>
+        <button class="delete-btn" id="delete-btn">Delete</button>
+      `;
+
+      // Append the popup to the action cell
       actionCell.appendChild(icon);
+      actionCell.appendChild(popupMenu);
       tr.appendChild(actionCell);
       tbody.appendChild(tr);
+
       totalNetAmount += row.netAmount;
     });
 
@@ -242,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function sortTable(table, column, order) {
     const date = table.getAttribute("data-date");
     const tableData = expensesByDate[date];
-
+    console.log(tableData);
     const sortedData = tableData.slice().sort((a, b) => {
       if (typeof a[column] === "string") {
         return order === "asc"
@@ -252,8 +350,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return order === "asc" ? a[column] - b[column] : b[column] - a[column];
       }
     });
-
+    console.log(sortedData);
     renderTableRows(table, sortedData);
+    // Add event listeners for Add and Delete buttons
+    const editButton = document.getElementById("edit-btn");
+    const deleteButton = document.getElementById("delete-btn");
+
+    editButton.addEventListener("click", () => {
+      console.log("hello world");
+      addItem();
+    });
+
+    deleteButton.addEventListener("click", () => {
+      deleteItem();
+    });
   }
 
   document.addEventListener("click", (event) => {
@@ -433,16 +543,17 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function setModalValues() {
     const cells = Array.from(currentRow.children);
-
+    document.getElementById("editExpenseInput").value =
+      cells[0].textContent.trim();
     document.getElementById("editAmountInput").value = parseFloat(
-      cells[0].textContent.trim()
+      cells[1].textContent.trim()
     );
     document.getElementById("editTypeSelect").value =
-      cells[1].textContent.trim();
-    document.getElementById("editPaymentMethodSelect").value =
       cells[2].textContent.trim();
+    document.getElementById("editPaymentMethodSelect").value =
+      cells[3].textContent.trim();
     document.getElementById("editNetAmountInput").value = parseFloat(
-      cells[3].textContent.trim()
+      cells[4].textContent.trim()
     );
 
     document.getElementById("editCellIndex").value = Array.from(
@@ -513,11 +624,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("editNetAmountInput").value = netAmount;
   }
-
   /**
    * Save changes to the table and close the modal.
    */
   function saveChanges() {
+    const expenseName = document.getElementById("editExpenseInput").value;
     const amount = parseFloat(document.getElementById("editAmountInput").value);
     const type = document.getElementById("editTypeSelect").value;
     const paymentMethod = document.getElementById(
@@ -542,15 +653,17 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       const row = currentRow;
       const cells = Array.from(row.children);
-
+      console.log(expenseName);
       // Update cells in the table
-      cells[0].textContent = amount;
-      cells[1].textContent = type;
-      cells[2].textContent = paymentMethod;
-      cells[3].textContent = netAmount;
+      cells[0].textContent = expenseName;
+      cells[1].textContent = amount;
+      cells[2].textContent = type;
+      cells[3].textContent = paymentMethod;
+      cells[4].textContent = netAmount;
       // **Update global data**
       if (expensesByDate[date]) {
         expensesByDate[date][rowIndex] = {
+          expenseName,
           amount,
           type,
           paymentMethod,
@@ -597,4 +710,25 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("editSaveButton")
     .addEventListener("click", saveChanges);
   console.log(expensesByDate);
+
+  function showPopup(event) {
+    // Prevent default click behavior
+    event.stopPropagation();
+
+    // Hide any other open popups
+    const allPopups = document.querySelectorAll(".popup-menu");
+    allPopups.forEach((popup) => (popup.style.display = "none"));
+
+    // Show the clicked popup
+    const popup = event.target.nextElementSibling;
+    popup.style.display = "block";
+
+    // Close the popup when clicking outside
+    document.addEventListener("click", function hidePopup(e) {
+      if (!popup.contains(e.target) && !event.target.contains(e.target)) {
+        popup.style.display = "none";
+        document.removeEventListener("click", hidePopup);
+      }
+    });
+  }
 });

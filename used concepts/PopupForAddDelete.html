@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .table {
+        position: relative;
+      }
+
+      .three-dots {
+        cursor: pointer;
+        font-size: 18px;
+        position: relative;
+      }
+
+      .popup-menu {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        padding: 10px;
+      }
+
+      .popup-menu button {
+        display: block;
+        width: 100%;
+        border: none;
+        background: none;
+        padding: 8px;
+        cursor: pointer;
+      }
+
+      .popup-menu button:hover {
+        background-color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="expenseTable">
+      <tr>
+        <th>Amount</th>
+        <th>Type</th>
+        <th>Payment Method</th>
+        <th>Action</th>
+      </tr>
+      <tr>
+        <td>$100</td>
+        <td>Food</td>
+        <td>Credit Card</td>
+        <td>
+          <div class="three-dots" onclick="showPopup(event)">⋮</div>
+          <div class="popup-menu">
+            <button onclick="addItem()">Add</button>
+            <button onclick="deleteItem()">Delete</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <script>
+      function showPopup(event) {
+        // Hide any other open popups
+        const allPopups = document.querySelectorAll(".popup-menu");
+        allPopups.forEach((popup) => (popup.style.display = "none"));
+
+        // Show the clicked popup
+        const popup = event.target.nextElementSibling;
+        popup.style.display = "block";
+
+        // Close the popup when clicking outside
+        document.addEventListener("click", function hidePopup(e) {
+          if (!popup.contains(e.target) && !event.target.contains(e.target)) {
+            popup.style.display = "none";
+            document.removeEventListener("click", hidePopup);
+          }
+        });
+      }
+
+      function addItem() {
+        // Implement add item logic
+        alert("Add Item");
+      }
+
+      function deleteItem() {
+        // Implement delete item logic
+        alert("Delete Item");
+      }
+    </script>
+  </body>
+</html>
