@@ -43,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = parseFloat(amountInput.value);
     const type = typeInput.value;
     const paymentMethod = paymentMethodInput.value;
-
     if (!validateInputs(date, amount, type)) return;
 
     const netAmount = calculateNetAmount(amount, type, paymentMethod);
@@ -111,7 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
       createNewDateSection(date);
     }
 
-    expensesByDate[date].push({ amount, type, paymentMethod, netAmount });
+    expensesByDate[date].push({
+      amount,
+      type,
+      paymentMethod,
+      netAmount,
+    });
   }
 
   function updateUI() {
@@ -141,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.insertCell(1).innerText = expense.type;
       row.insertCell(2).innerText = expense.paymentMethod;
       row.insertCell(3).innerText = expense.netAmount;
+      row.insertCell(4).innerHTML = `<i class="bi bi-three-dots-vertical"></i>`;
       totalNetAmount += expense.netAmount;
     });
 
@@ -215,19 +220,18 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.appendChild(td);
       });
 
-      // Create the action button cell
+      // // Create the action button cell
       const actionCell = document.createElement("td");
-      const deleteButton = document.createElement("button");
-      deleteButton.className = "btn btn-danger btn-sm";
-      deleteButton.onclick = function () {
-        expenseTracker.deleteRow(this);
-      };
+      // const deleteButton = document.createElement("button");
+      // deleteButton.className = "hero";
+      // deleteButton.onclick = function () {
+      //   expenseTracker.deleteRow(this);
+      // };
       const icon = document.createElement("i");
-      icon.className = "bi bi-trash";
-      deleteButton.appendChild(icon);
-      actionCell.appendChild(deleteButton);
+      icon.className = "bi bi-three-dots-vertical";
+      // deleteButton.appendChild(icon);
+      actionCell.appendChild(icon);
       tr.appendChild(actionCell);
-
       tbody.appendChild(tr);
       totalNetAmount += row.netAmount;
     });
@@ -592,4 +596,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("editSaveButton")
     .addEventListener("click", saveChanges);
+  console.log(expensesByDate);
 });

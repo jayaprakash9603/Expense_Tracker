@@ -145,7 +145,7 @@ input[readonly] {
   display: none;
 }
 .input-section {
-  background-color: #8d949b;
+  /* background-color: #8d949b; */
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -153,14 +153,14 @@ input[readonly] {
   width: 100%;
 }
 .expenseName {
-  background-color: darkcyan;
+  /* background-color: darkcyan; */
   margin-right: auto;
   padding: 10px;
   margin-right: 10px;
 }
 .dateInput {
   display: inline-block;
-  background-color: #007bff;
+  /* background-color: #007bff; */
   padding: 10px;
   margin-right: 10px;
 }
@@ -170,11 +170,11 @@ input[readonly] {
   align-items: center;
   justify-content: center;
   padding: 10px;
-  background-color: aqua;
+  /* background-color: aqua; */
 }
 .typeInput {
   margin-right: 10px;
-  background-color: burlywood;
+  /* background-color: burlywood; */
   display: flex;
   align-items: center;
   padding: 10px;
@@ -184,13 +184,13 @@ input[readonly] {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: cadetblue;
+  /* background-color: cadetblue; */
   padding: 10px;
   margin-right: 10px;
 }
 .addExpenseButton {
   padding: 10px;
-  background-color: violet;
+  /* background-color: violet; */
 }
 .addExpenseButton #addExpense {
   width: 110px;
@@ -199,6 +199,8 @@ input[readonly] {
   border: none;
   border-radius: 5px;
   font-size: 15px;
+  color: white;
+  background-color: #3acfff;
 }
 
 .modal-body input,
