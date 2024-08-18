@@ -214,11 +214,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const editButton = document.getElementById("edit-btn");
   const deleteButton = document.getElementById("delete-btn");
 
-  editButton.addEventListener("click", () => {
-    setModalValues();
-    // console.log("hello world");
-    // addItem();
-  });
+  // editButton.addEventListener("click", () => {
+  //   setModalValues();
+
+  //   // console.log("hello world");
+  //   // addItem();
+  // });
 
   deleteButton.addEventListener("click", () => {
     deleteItem();
@@ -534,13 +535,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Set up event listeners
   // document.querySelectorAll("td").forEach((cell) => {
   //   cell.addEventListener("click", function () {
-  //     if (this.id === "edit-btn") {
-  //       // Check if the cell has the id 'edit-btn'
-  //       currentCell = this;
-  //       currentRow = this.parentElement;
-  //       console.log(currentCell + "" + currentRow);
-  //       setModalValues();
-  //     }
+  //     // Check if the cell has the id 'edit-btn'
+  //     currentCell = this;
+  //     currentRow = this.parentElement;
+  //     console.log(currentCell + "" + currentRow);
+  //     setModalValues();
   //   });
   // });
   // Set up event listeners for buttons within cells
@@ -553,7 +552,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Current cell:", currentCell);
         console.log("Current row:", currentRow);
         setModalValues();
-        popupMenuDiv.display = "none";
+        console.log("Current cell:", currentCell);
+        console.log("Current row:", currentRow);
+        // popupMenuDiv.display = "none";
       });
     }
   });
@@ -672,6 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       const row = currentRow;
       const cells = Array.from(row.children);
+      console.log(row + "" + cells);
       console.log(expenseName);
       // Update cells in the table
       cells[0].textContent = expenseName;
@@ -710,11 +712,11 @@ document.addEventListener("DOMContentLoaded", () => {
         saveTotalSalaryToLocalStorage(); // Save updated total salary
         saveCreditCardDueToLocalStorage();
         updateUI(); // Save updated credit due
+        console.log("here");
       }
 
       $(editModal).modal("hide");
-      popupMenu.display = "none";
-      initializeUI();
+      // popupMenu.display = "none";
     }
   }
 
