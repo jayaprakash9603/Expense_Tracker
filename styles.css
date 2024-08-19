@@ -214,6 +214,10 @@ input[readonly] {
   background-color: #3acfff;
 }
 
+.header-search-container {
+  display: flex;
+  /* background-color: #007bff; */
+}
 .modal-body input,
 .modal-body select {
   width: 100%;
@@ -325,7 +329,33 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator:hover {
 .popup-menu button:hover {
   background-color: #ddd;
 }
-
+.search-container {
+  margin-bottom: 20px;
+  display: flex;
+}
+#search-input,
+#search-column,
+#date-input {
+  padding: 5px;
+  font-size: 16px;
+}
+#header-search-input,
+#searchDate {
+  display: none;
+}
+.header-search-container {
+  margin-bottom: 20px;
+  display: flex;
+}
+#header-search-input,
+#header-search-column {
+  padding: 5px;
+  font-size: 16px;
+}
+#search-input,
+#date-input {
+  display: none;
+}
 .reason-modal {
   display: none;
   position: fixed;
@@ -357,7 +387,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator:hover {
   background: #e0e0e0; /* Light background */
   border-radius: 15px;
   padding: 20px;
-  max-width: 500px;
+  max-width: 1000px;
   width: 100%;
   box-shadow: 8px 8px 15px rgba(0, 0, 0, 0.2),
     -8px -8px 15px rgba(255, 255, 255, 0.5); /* Neuromorphism shadow */
@@ -365,6 +395,12 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator:hover {
   max-height: 80vh; /* Limit height of modal */
   overflow-y: auto; /* Make modal content scrollable */
   position: relative;
+}
+table thead#reason-modal-table-head {
+  position: sticky;
+  background-color: black;
+  top: 0;
+  color: white; /* Optional: to ensure text is readable against the black background */
 }
 .reason-modal-content:hover {
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2),
@@ -419,5 +455,5 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator:hover {
 }
 
 .reason-modal-table table th {
-  background-color: #f0f0f0; /* Light header color */
+  background-color: #f0f0f0;
 }

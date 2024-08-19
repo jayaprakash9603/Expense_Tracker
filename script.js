@@ -361,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButton = document.getElementById("delete-btn");
 
     editButton.addEventListener("click", () => {
-      console.log("hello world");
+      // console.log("hello world");
       addItem();
     });
 
@@ -549,11 +549,11 @@ document.addEventListener("DOMContentLoaded", () => {
       button.addEventListener("click", function () {
         currentCell = cell; // Set currentCell to the parent cell of the button
         currentRow = cell.parentElement; // Set currentRow to the parent row of the cell
-        console.log("Current cell:", currentCell);
-        console.log("Current row:", currentRow);
+        // console.log("Current cell:", currentCell);
+        // console.log("Current row:", currentRow);
         setModalValues();
-        console.log("Current cell:", currentCell);
-        console.log("Current row:", currentRow);
+        // console.log("Current cell:", currentCell);
+        // console.log("Current row:", currentRow);
         // popupMenuDiv.display = "none";
       });
     }
@@ -661,7 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .closest(".date-section")
       .querySelector("h2")
       .textContent.trim();
-    console.log(date);
+    // console.log(date);
     if (currentCell) {
       const rowIndex = parseInt(
         document.getElementById("editRowIndex").value,
@@ -712,7 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveTotalSalaryToLocalStorage(); // Save updated total salary
         saveCreditCardDueToLocalStorage();
         updateUI(); // Save updated credit due
-        console.log("here");
+        // console.log("here");
       }
 
       $(editModal).modal("hide");
@@ -792,16 +792,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const expenseName = detail.expenseName; // Extract the expenseName
 
         // Print the expenseName
-        console.log(expenseName);
+        // console.log(expenseName);
 
         // Create a new row in the modal table
         const newRow = modalTableBody.insertRow();
         const dateCell = newRow.insertCell(0);
         const reasonCell = newRow.insertCell(1);
+        const amountCell = newRow.insertCell(2);
+        const paymentMethodCell = newRow.insertCell(3);
+        const typeCell = newRow.insertCell(4);
+        const netAmountCell = newRow.insertCell(5);
 
         // Populate cells with the date and expenseName
         dateCell.textContent = date; // Set date in date cell
-        reasonCell.textContent = `${expenseName} - ${detail.amount}`; // Set expenseName in reason cell
+        reasonCell.textContent = expenseName; // Set expenseName in reason cell
+        amountCell.textContent = detail.amount; // Set amount in amount cell
+        paymentMethodCell.textContent = detail.paymentMethod;
+        typeCell.textContent = detail.type;
+        netAmountCell.textContent = detail.netAmount;
       });
     });
 
@@ -827,4 +835,163 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   console.log(expensesByDate);
+  // Function to display all data initially
+  function displayAllData(tableId) {
+    const results = [];
+
+    for (const date in expensesByDate) {
+      expensesByDate[date].forEach((expense) => {
+        results.push({ date, ...expense });
+      });
+    }
+
+    displayResults(results, tableId);
+  }
+
+  // Function to handle search input visibility based on selected column
+  function searchValue(searchColumnId, dateInputId, searchInputId) {
+    const searchColumn = document.getElementById(searchColumnId).value;
+    const dateInput = document.getElementById(dateInputId);
+    const searchInput = document.getElementById(searchInputId);
+
+    if (searchColumn === "date") {
+      dateInput.style.display = "block";
+      searchInput.style.display = "none";
+      // showAllReasons(expensesByDate);
+      dateInput.focus(); // Focus on the date input
+    } else {
+      dateInput.style.display = "none";
+      searchInput.style.display = "block";
+      // showAllReasons(expensesByDate);
+      searchInput.focus(); // Focus on the text input
+    }
+  }
+
+  // Real-time search function based on selected column
+  function searchExpenses(searchColumnId, searchInputId, dateInputId, tableId) {
+    const searchColumn = document.getElementById(searchColumnId).value;
+    const searchInput = document.getElementById(searchInputId);
+    const dateInput = document.getElementById(dateInputId);
+    const searchTerm =
+      searchColumn === "date"
+        ? dateInput.value
+        : searchInput.value.toLowerCase();
+    const results = [];
+
+    for (const date in expensesByDate) {
+      expensesByDate[date].forEach((expense) => {
+        if (searchColumn === "") {
+          // Search across all columns
+          for (const key in expense) {
+            if (
+              expense[key].toString().toLowerCase().includes(searchTerm) ||
+              date.includes(searchTerm)
+            ) {
+              results.push({ date, ...expense });
+              break;
+            }
+          }
+        } else if (searchColumn === "date") {
+          // Search by date
+          if (date === searchTerm) {
+            results.push({ date, ...expensesByDate[date][0] });
+          }
+        } else {
+          // Search within selected column
+          const valueToCheck = expense[searchColumn].toString().toLowerCase();
+          if (valueToCheck.includes(searchTerm)) {
+            results.push({ date, ...expense });
+          }
+        }
+      });
+    }
+
+    displayResults(results, tableId);
+  }
+
+  // Function to display results in the specified table
+  function displayResults(results, tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) {
+      console.error(`Table with ID "${tableId}" not found.`);
+      return;
+    }
+
+    const tbody = table.querySelector("tbody");
+    if (!tbody) {
+      console.error(
+        `Table with ID "${tableId}" does not have a <tbody> element.`
+      );
+      return;
+    }
+
+    tbody.innerHTML = ""; // Clear previous results
+
+    results.forEach((result) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+      <td>${result.date}</td>
+      <td>${result.expenseName}</td>
+      <td>${result.amount}</td>
+      <td>${result.type}</td>
+      <td>${result.paymentMethod}</td>
+      <td>${result.netAmount}</td>
+    `;
+      tbody.appendChild(row);
+    });
+
+    if (results.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6">No results found</td></tr>';
+    }
+  }
+
+  // Function to attach event listeners dynamically
+  function attachEventListeners(
+    searchInputId,
+    searchColumnId,
+    dateInputId,
+    tableId
+  ) {
+    document
+      .getElementById(searchInputId)
+      .addEventListener("input", () =>
+        searchExpenses(searchColumnId, searchInputId, dateInputId, tableId)
+      );
+    document
+      .getElementById(searchColumnId)
+      .addEventListener("change", () =>
+        searchValue(searchColumnId, dateInputId, searchInputId)
+      );
+
+    document
+      .getElementById(dateInputId)
+      .addEventListener("change", () =>
+        searchExpenses(searchColumnId, searchInputId, dateInputId, tableId)
+      );
+  }
+
+  // Initialize display settings and data
+  window.onload = () => {
+    // Example of initializing with specific IDs
+    const tableId = "reason-modal-table";
+    const searchInputId = "search-input";
+    const searchColumnId = "search-column";
+    const dateInputId = "date-input";
+    const tableId1 = "header-search-table";
+    const searchInputId1 = "header-search-input";
+    const searchColumnId1 = "header-search-column";
+    const dateInputId1 = "searchDate";
+
+    displayAllData(tableId);
+    attachEventListeners(searchInputId, searchColumnId, dateInputId, tableId);
+    searchValue(searchColumnId, dateInputId, searchInputId, tableId);
+    displayAllData(tableId1);
+    attachEventListeners(
+      searchInputId1,
+      searchColumnId1,
+      dateInputId1,
+      tableId1
+    );
+    searchValue(searchColumnId1, dateInputId1, searchInputId1, tableId1); // Ensure correct input is displayed based on default dropdown value
+  };
 });

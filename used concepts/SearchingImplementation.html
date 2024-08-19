@@ -22,17 +22,25 @@
       }
       .search-container {
         margin-bottom: 20px;
+        display: flex;
       }
       #search-input,
-      #search-column {
+      #search-column,
+      #date-input {
         padding: 5px;
         font-size: 16px;
+      }
+      #search-input,
+      #date-input {
+        display: none;
       }
     </style>
   </head>
   <body>
     <div class="search-container">
       <select id="search-column">
+        <option value=""></option>
+        <option value="date">Date</option>
         <option value="expenseName">Expense Name</option>
         <option value="amount">Amount</option>
         <option value="type">Type</option>
@@ -40,6 +48,7 @@
         <option value="netAmount">Net Amount</option>
       </select>
       <input type="text" id="search-input" placeholder="Search..." />
+      <input type="date" id="date-input" placeholder="Select Date" />
     </div>
 
     <table id="result-table">
@@ -58,12 +67,11 @@
       </tbody>
     </table>
 
-    <script src="script.js"></script>
     <script>
       const data = {
         "2024-08-18": [
           {
-            expenseName: "country-7",
+            expenseName: "first",
             amount: 20000,
             type: "gain",
             paymentMethod: "cash",
@@ -71,15 +79,15 @@
           },
           {
             expenseName: "asdf",
-            amount: 2798,
+            amount: "second",
             type: "gain",
-            paymentMethod: "credit-card",
+            paymentMethod: "cash",
             netAmount: 2798,
           },
           {
             expenseName: "juice",
             amount: 123,
-            type: "loss",
+            type: "third",
             paymentMethod: "cash",
             netAmount: -123,
           },
@@ -94,7 +102,7 @@
             expenseName: "hello",
             amount: 234234,
             type: "loss",
-            paymentMethod: "cash",
+            paymentMethod: "fourth",
             netAmount: -234234,
           },
           {
@@ -118,7 +126,7 @@
             amount: 2234234,
             type: "loss",
             paymentMethod: "cash",
-            netAmount: -2234234,
+            netAmount: "fifth",
           },
         ],
       };
@@ -136,19 +144,59 @@
         displayResults(results);
       }
 
+      function searchValue() {
+        const searchColumn = document.getElementById("search-column").value;
+        const dateInput = document.getElementById("date-input");
+        const searchInput = document.getElementById("search-input");
+
+        if (searchColumn === "date") {
+          dateInput.style.display = "block";
+          searchInput.style.display = "none";
+          dateInput.focus(); // Focus on the date input
+        } else {
+          dateInput.style.display = "none";
+          searchInput.style.display = "block";
+          searchInput.focus(); // Focus on the text input
+        }
+      }
+
       // Real-time search function based on selected column
       function searchExpenses() {
-        const searchTerm = document
-          .getElementById("search-input")
-          .value.toLowerCase();
         const searchColumn = document.getElementById("search-column").value;
+        const searchInput = document.getElementById("search-input");
+        const dateInput = document.getElementById("date-input");
+        const searchTerm =
+          searchColumn === "date"
+            ? dateInput.value
+            : searchInput.value.toLowerCase();
         const results = [];
 
         for (const date in data) {
           data[date].forEach((expense) => {
-            const valueToCheck = expense[searchColumn].toString().toLowerCase();
-            if (valueToCheck.includes(searchTerm)) {
-              results.push({ date, ...expense });
+            if (searchColumn === "") {
+              // Search across all columns
+              for (const key in expense) {
+                if (
+                  expense[key].toString().toLowerCase().includes(searchTerm) ||
+                  date.includes(searchTerm)
+                ) {
+                  results.push({ date, ...expense });
+                  break;
+                }
+              }
+            } else if (searchColumn === "date") {
+              // Search by date
+              if (date === searchTerm) {
+                results.push({ date, ...data[date][0] });
+              }
+            } else {
+              // Search within selected column
+              const valueToCheck = expense[searchColumn]
+                .toString()
+                .toLowerCase();
+              if (valueToCheck.includes(searchTerm)) {
+                results.push({ date, ...expense });
+              }
             }
           });
         }
@@ -172,7 +220,7 @@
             <td>${result.type}</td>
             <td>${result.paymentMethod}</td>
             <td>${result.netAmount}</td>
-        `;
+          `;
           tbody.appendChild(row);
         });
 
@@ -181,13 +229,22 @@
         }
       }
 
-      // Attach the search function to the input event
+      // Attach event listeners
       document
         .getElementById("search-input")
         .addEventListener("input", searchExpenses);
+      document
+        .getElementById("search-column")
+        .addEventListener("change", searchValue);
+      document
+        .getElementById("date-input")
+        .addEventListener("change", searchExpenses);
 
-      // Display all data on page load
-      window.onload = displayAllData;
+      // Initialize display settings and data
+      window.onload = () => {
+        displayAllData();
+        searchValue(); // Ensure correct input is displayed based on default dropdown value
+      };
     </script>
   </body>
 </html>

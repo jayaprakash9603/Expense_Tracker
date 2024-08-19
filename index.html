@@ -70,12 +70,36 @@
         <div class="plusIconDiv">
           <i class="bi bi-plus"></i>
         </div>
+        <div class="header-search-container">
+          <select id="header-search-column">
+            <option value=""></option>
+            <option value="date">Date</option>
+            <option value="expenseName">Expense Name</option>
+            <option value="amount">Amount</option>
+            <option value="type">Type</option>
+            <option value="paymentMethod">Payment Method</option>
+            <option value="netAmount">Net Amount</option>
+          </select>
+          <input
+            type="text"
+            id="header-search-input"
+            placeholder="Search..."
+            style="height: 40px"
+          />
 
-        <div class="search-section">
-          <!-- <label for="searchDate">Search</label> -->
-          <input type="date" id="searchDate" min="2002-01-15" />
-          <!-- <button id="searchButton">Search</button> -->
+          <input
+            type="date"
+            id="searchDate"
+            class="search-section"
+            placeholder="Select Date"
+            style="margin-left: 5px; height: 40px; width: 150px"
+          />
         </div>
+        <!-- <div class="search-section"> -->
+        <!-- <label for="searchDate">Search</label> -->
+        <!-- <input type="date" id="searchDate" min="2002-01-15" /> -->
+        <!-- <button id="searchButton">Search</button> -->
+        <!-- </div> -->
         <div class="sortButtonDiv">
           <button id="sortButton">Sort(Asc)</button>
         </div>
@@ -90,7 +114,19 @@
         <p>Credit Card Due: <span id="creditDue">0</span></p>
       </div>
     </div>
-
+    <table id="header-search-table">
+      <thead id="header-search-table-head">
+        <tr>
+          <th>Date</th>
+          <th>Expense</th>
+          <th>Amount</th>
+          <th>Payment Method</th>
+          <th>type</th>
+          <th>Net Amount</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
     <!-- Modal for editing -->
     <div
       class="modal fade"
@@ -178,12 +214,40 @@
           >&times;</span
         >
         <span>Expenses List</span>
-        <input type="text" />
+        <div class="search-container">
+          <select id="search-column">
+            <option value=""></option>
+            <option value="date">Date</option>
+            <option value="expenseName">Expense Name</option>
+            <option value="amount">Amount</option>
+            <option value="type">Type</option>
+            <option value="paymentMethod">Payment Method</option>
+            <option value="netAmount">Net Amount</option>
+          </select>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search..."
+            style="height: 40px"
+          />
+
+          <input
+            type="date"
+            id="date-input"
+            class="search-section"
+            placeholder="Select Date"
+            style="margin-left: 5px; height: 40px; width: 150px"
+          />
+        </div>
         <table id="reason-modal-table">
-          <thead>
+          <thead id="reason-modal-table-head">
             <tr>
               <th>Date</th>
-              <th>Expense Amount</th>
+              <th>Expense</th>
+              <th>Amount</th>
+              <th>Payment Method</th>
+              <th>type</th>
+              <th>Net Amount</th>
             </tr>
           </thead>
           <tbody></tbody>

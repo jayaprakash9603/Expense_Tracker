@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Custom CSS for the dropdown and modal */
+      .popup-menu {
+        display: none;
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        padding: 10px;
+        z-index: 1000;
+      }
+      .popup-menu button {
+        display: block;
+        margin: 5px 0;
+      }
+      .iconClass {
+        cursor: pointer;
+      }
+      .modal-body input {
+        margin-bottom: 10px;
+      }
+      .dropdown-menu {
+        max-width: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <div class="row mb-2">
+        <div class="col-md-4">
+          <input
+            type="text"
+            id="search-box"
+            class="form-control"
+            placeholder="Search"
+          />
+        </div>
+        <div class="col-md-4">
+          <select id="column-dropdown" class="form-select">
+            <option value="">Search by Column</option>
+            <option value="Amount">Amount</option>
+            <option value="Type">Type</option>
+            <option value="Payment Method">Payment Method</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select id="date-dropdown" class="form-select">
+            <option value="">Search by Date</option>
+            <!-- Dates will be dynamically populated here -->
+          </select>
+        </div>
+      </div>
+      <table class="table table-striped" id="expense-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Payment Method</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be dynamically populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal for editing expenses -->
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Expense</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="text"
+              id="modal-date"
+              class="form-control"
+              placeholder="Date"
+            />
+            <input
+              type="text"
+              id="modal-amount"
+              class="form-control"
+              placeholder="Amount"
+            />
+            <input
+              type="text"
+              id="modal-type"
+              class="form-control"
+              placeholder="Type"
+            />
+            <input
+              type="text"
+              id="modal-payment-method"
+              class="form-control"
+              placeholder="Payment Method"
+            />
+            <input type="hidden" id="modal-row-index" />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="save-changes">
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let expenses = [];
+      let currentRow;
+
+      // Sample data for initialization
+      expenses = [
+        {
+          date: "2024-08-15",
+          amount: 100,
+          type: "Food",
+          paymentMethod: "Credit Card",
+        },
+        {
+          date: "2024-08-16",
+          amount: 50,
+          type: "Transport",
+          paymentMethod: "Cash",
+        },
+      ];
+
+      function renderTable() {
+        const tbody = document.querySelector("#expense-table tbody");
+        tbody.innerHTML = "";
+        expenses.forEach((expense, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td>${expense.date}</td>
+          <td>${expense.amount}</td>
+          <td>${expense.type}</td>
+          <td>${expense.paymentMethod}</td>
+          <td>
+            <i class="bi bi-three-dots-vertical iconClass" data-index="${index}"></i>
+            <div class="popup-menu">
+              <button class="edit-btn" data-index="${index}">Edit</button>
+              <button class="delete-btn" data-index="${index}">Delete</button>
+            </div>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        });
+        updateDateDropdown();
+      }
+
+      function updateDateDropdown() {
+        const dateDropdown = document.querySelector("#date-dropdown");
+        dateDropdown.innerHTML = '<option value="">Search by Date</option>';
+        const dates = [...new Set(expenses.map((e) => e.date))];
+        dates.forEach((date) => {
+          const option = document.createElement("option");
+          option.value = date;
+          option.textContent = date;
+          dateDropdown.appendChild(option);
+        });
+      }
+
+      function setModalValues(expense) {
+        document.querySelector("#modal-date").value = expense.date;
+        document.querySelector("#modal-amount").value = expense.amount;
+        document.querySelector("#modal-type").value = expense.type;
+        document.querySelector("#modal-payment-method").value =
+          expense.paymentMethod;
+        document.querySelector("#modal-row-index").value = expense.index;
+      }
+
+      function handleEdit(index) {
+        const expense = expenses[index];
+        setModalValues({ ...expense, index });
+        const modal = new bootstrap.Modal(document.querySelector("#editModal"));
+        modal.show();
+      }
+
+      function handleDelete(index) {
+        expenses.splice(index, 1);
+        renderTable();
+        saveExpensesToLocalStorage();
+      }
+
+      function saveExpensesToLocalStorage() {
+        localStorage.setItem("expenses", JSON.stringify(expenses));
+      }
+
+      function loadExpensesFromLocalStorage() {
+        const savedExpenses = localStorage.getItem("expenses");
+        if (savedExpenses) {
+          expenses = JSON.parse(savedExpenses);
+          renderTable();
+        }
+      }
+
+      document.querySelector("#save-changes").addEventListener("click", () => {
+        const index = document.querySelector("#modal-row-index").value;
+        expenses[index] = {
+          date: document.querySelector("#modal-date").value,
+          amount: parseFloat(document.querySelector("#modal-amount").value),
+          type: document.querySelector("#modal-type").value,
+          paymentMethod: document.querySelector("#modal-payment-method").value,
+        };
+        renderTable();
+        saveExpensesToLocalStorage();
+        const modal = bootstrap.Modal.getInstance(
+          document.querySelector("#editModal")
+        );
+        modal.hide();
+      });
+
+      document
+        .querySelector("#expense-table")
+        .addEventListener("click", (event) => {
+          if (event.target.matches(".edit-btn")) {
+            handleEdit(event.target.dataset.index);
+          } else if (event.target.matches(".delete-btn")) {
+            handleDelete(event.target.dataset.index);
+          }
+        });
+
+      document.querySelector("#search-box").addEventListener("input", () => {
+        const query = document.querySelector("#search-box").value.toLowerCase();
+        const column = document.querySelector("#column-dropdown").value;
+        const filteredExpenses = expenses.filter((expense) => {
+          return Object.values(expense).some((value) =>
+            value.toLowerCase().includes(query)
+          );
+        });
+        renderTable(filteredExpenses);
+      });
+
+      document
+        .querySelector("#column-dropdown")
+        .addEventListener("change", () => {
+          document
+            .querySelector("#search-box")
+            .dispatchEvent(new Event("input"));
+        });
+
+      document
+        .querySelector("#date-dropdown")
+        .addEventListener("change", () => {
+          const selectedDate = document.querySelector("#date-dropdown").value;
+          if (selectedDate) {
+            const filteredExpenses = expenses.filter(
+              (expense) => expense.date === selectedDate
+            );
+            renderTable(filteredExpenses);
+          } else {
+            renderTable();
+          }
+        });
+
+      window.addEventListener("load", loadExpensesFromLocalStorage);
+    </script>
+  </body>
+</html>
