@@ -826,4 +826,5 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.style.overflow = "";
     }
   });
+  console.log(expensesByDate);
 });

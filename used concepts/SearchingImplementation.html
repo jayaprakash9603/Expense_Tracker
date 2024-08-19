@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search Expenses</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="text" id="search-input" placeholder="Search by expense name" />
+    <button onclick="searchExpenses()">Search</button>
+
+    <table id="result-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Expense Name</th>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Payment Method</th>
+          <th>Net Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be populated here -->
+      </tbody>
+    </table>
+
+    <script src="script.js"></script>
+    <script>
+      const data = {
+        "2024-08-18": [
+          {
+            expenseName: "country-7",
+            amount: 20000,
+            type: "gain",
+            paymentMethod: "cash",
+            netAmount: 20000,
+          },
+          {
+            expenseName: "asdf",
+            amount: 2798,
+            type: "gain",
+            paymentMethod: "cash",
+            netAmount: 2798,
+          },
+          {
+            expenseName: "juice",
+            amount: 123,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -123,
+          },
+          {
+            expenseName: "juice",
+            amount: 123123,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -123123,
+          },
+          {
+            expenseName: "hello",
+            amount: 234234,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -234234,
+          },
+          {
+            expenseName: "112341234",
+            amount: 2,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -2,
+          },
+          {
+            expenseName: "98789981234",
+            amount: 2,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -2,
+          },
+        ],
+        "2024-08-19": [
+          {
+            expenseName: "india",
+            amount: 2234234,
+            type: "loss",
+            paymentMethod: "cash",
+            netAmount: -2234234,
+          },
+        ],
+      };
+
+      // Function to display all data initially
+      function displayAllData() {
+        const results = [];
+
+        for (const date in data) {
+          data[date].forEach((expense) => {
+            results.push({ date, ...expense });
+          });
+        }
+
+        displayResults(results);
+      }
+
+      // Real-time search function
+      function searchExpenses() {
+        const searchTerm = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+        const results = [];
+
+        for (const date in data) {
+          data[date].forEach((expense) => {
+            if (expense.expenseName.toLowerCase().includes(searchTerm)) {
+              results.push({ date, ...expense });
+            }
+          });
+        }
+
+        displayResults(results);
+      }
+
+      // Function to display results in the table
+      function displayResults(results) {
+        const tbody = document
+          .getElementById("result-table")
+          .querySelector("tbody");
+        tbody.innerHTML = ""; // Clear previous results
+
+        results.forEach((result) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${result.date}</td>
+            <td>${result.expenseName}</td>
+            <td>${result.amount}</td>
+            <td>${result.type}</td>
+            <td>${result.paymentMethod}</td>
+            <td>${result.netAmount}</td>
+        `;
+          tbody.appendChild(row);
+        });
+
+        if (results.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">No results found</td></tr>';
+        }
+      }
+
+      // Attach the search function to the input event
+      document
+        .getElementById("search-input")
+        .addEventListener("input", searchExpenses);
+
+      // Display all data on page load
+      window.onload = displayAllData;
+    </script>
+  </body>
+</html>
