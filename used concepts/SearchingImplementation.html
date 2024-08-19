@@ -20,11 +20,27 @@
         padding: 10px;
         text-align: left;
       }
+      .search-container {
+        margin-bottom: 20px;
+      }
+      #search-input,
+      #search-column {
+        padding: 5px;
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
-    <input type="text" id="search-input" placeholder="Search by expense name" />
-    <button onclick="searchExpenses()">Search</button>
+    <div class="search-container">
+      <select id="search-column">
+        <option value="expenseName">Expense Name</option>
+        <option value="amount">Amount</option>
+        <option value="type">Type</option>
+        <option value="paymentMethod">Payment Method</option>
+        <option value="netAmount">Net Amount</option>
+      </select>
+      <input type="text" id="search-input" placeholder="Search..." />
+    </div>
 
     <table id="result-table">
       <thead>
@@ -57,7 +73,7 @@
             expenseName: "asdf",
             amount: 2798,
             type: "gain",
-            paymentMethod: "cash",
+            paymentMethod: "credit-card",
             netAmount: 2798,
           },
           {
@@ -120,16 +136,18 @@
         displayResults(results);
       }
 
-      // Real-time search function
+      // Real-time search function based on selected column
       function searchExpenses() {
         const searchTerm = document
           .getElementById("search-input")
           .value.toLowerCase();
+        const searchColumn = document.getElementById("search-column").value;
         const results = [];
 
         for (const date in data) {
           data[date].forEach((expense) => {
-            if (expense.expenseName.toLowerCase().includes(searchTerm)) {
+            const valueToCheck = expense[searchColumn].toString().toLowerCase();
+            if (valueToCheck.includes(searchTerm)) {
               results.push({ date, ...expense });
             }
           });
