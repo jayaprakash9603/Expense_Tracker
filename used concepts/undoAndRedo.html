@@ -66,6 +66,7 @@
       <table class="table table-bordered" id="expense-table">
         <thead>
           <tr>
+            <th>Expense Name</th>
             <th>Amount</th>
             <th>Type</th>
             <th>Payment Method</th>
@@ -78,7 +79,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="4" class="text-right total-label">
+            <td colspan="5" class="text-right total-label">
               Total Net Amount:
             </td>
             <td class="total-row" id="total-net-amount">0</td>
@@ -106,30 +107,35 @@
         // Initial data
         const initialData = [
           {
+            name: "Office Supplies",
             amount: 3000,
             type: "Gain",
             paymentMethod: "Cash",
             netAmount: 3000,
           },
           {
+            name: "Marketing",
             amount: 3000,
             type: "Gain",
             paymentMethod: "Cash",
             netAmount: 3000,
           },
           {
+            name: "Consulting",
             amount: 3000,
             type: "Gain",
             paymentMethod: "Credit Paid",
             netAmount: 0,
           },
           {
+            name: "Sales",
             amount: 9000,
             type: "Gain",
             paymentMethod: "Cash",
             netAmount: 9000,
           },
           {
+            name: "Utilities",
             amount: 33000,
             type: "Loss",
             paymentMethod: "Cash",
@@ -141,9 +147,10 @@
         let currentStateIndex = -1;
         let initialTableHtml = ""; // Store the initial HTML of the table
 
-        function createRow({ amount, type, paymentMethod, netAmount }) {
+        function createRow({ name, amount, type, paymentMethod, netAmount }) {
           return `
                     <tr>
+                        <td><input type="text" class="form-control name-input" value="${name}"></td>
                         <td><input type="number" class="form-control amount-input" value="${amount}"></td>
                         <td>
                             <select class="form-control type-select">
@@ -188,6 +195,7 @@
           const rows = Array.from(
             document.querySelectorAll(`#${tableBodyId} tr`)
           ).map((row) => ({
+            name: row.querySelector(".name-input").value,
             amount: row.querySelector(".amount-input").value,
             type: row.querySelector(".type-select").value,
             paymentMethod: row.querySelector(".payment-method-select").value,
