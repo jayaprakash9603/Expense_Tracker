@@ -41,6 +41,9 @@
       .total-label {
         text-align: right;
       }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -48,19 +51,19 @@
       <div class="header-container mb-3">
         <i
           class="bi bi-arrow-left navigation-icons"
-          onclick="expenseTracker.undo()"
+          onclick="expenseTracker.undo('table-body', 'undo-btn', 'redo-btn')"
           id="undo-btn"
           disabled
         ></i>
         <h2 class="header-date" id="table-date">2024-08-17</h2>
         <i
           class="bi bi-arrow-right navigation-icons"
-          onclick="expenseTracker.redo()"
+          onclick="expenseTracker.redo('table-body', 'undo-btn', 'redo-btn')"
           id="redo-btn"
           disabled
         ></i>
       </div>
-      <table class="table table-bordered">
+      <table class="table table-bordered" id="expense-table">
         <thead>
           <tr>
             <th>Amount</th>
@@ -82,7 +85,10 @@
           </tr>
         </tfoot>
       </table>
-      <button class="btn btn-primary sync-btn">
+      <button
+        class="btn btn-primary sync-btn"
+        onclick="expenseTracker.sync('table-body', 'expense-table', 'total-net-amount')"
+      >
         <i class="bi bi-arrow-clockwise"></i> Sync
       </button>
     </div>
@@ -133,8 +139,9 @@
 
         let tableStates = [];
         let currentStateIndex = -1;
+        let initialTableHtml = ""; // Store the initial HTML of the table
 
-        function createRow(amount, type, paymentMethod, netAmount) {
+        function createRow({ amount, type, paymentMethod, netAmount }) {
           return `
                     <tr>
                         <td><input type="number" class="form-control amount-input" value="${amount}"></td>
@@ -164,7 +171,7 @@
                         </td>
                         <td><input type="number" class="form-control net-amount-input" value="${netAmount}" readonly></td>
                         <td>
-                            <button class="btn btn-danger btn-sm" onclick="expenseTracker.deleteRow(this)">
+                            <button class="btn btn-danger btn-sm" onclick="expenseTracker.deleteRow(this, 'table-body', 'total-net-amount')">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </td>
@@ -172,35 +179,22 @@
                 `;
         }
 
-        function renderTable() {
-          const tbody = document.getElementById("table-body");
-          tbody.innerHTML = initialData
-            .map((row) =>
-              createRow(row.amount, row.type, row.paymentMethod, row.netAmount)
-            )
-            .join("");
-          saveState();
-          updateTotalNetAmount();
+        function updateTableBody(tableBodyId, data) {
+          const tbody = document.getElementById(tableBodyId);
+          tbody.innerHTML = data.map(createRow).join("");
         }
 
-        function saveState() {
+        function saveState(tableBodyId) {
           const rows = Array.from(
-            document.querySelectorAll("#table-body tr")
-          ).map((row) => {
-            const amount = row.querySelector(".amount-input").value;
-            const type = row.querySelector(".type-select").value;
-            const paymentMethod = row.querySelector(
-              ".payment-method-select"
-            ).value;
-            const netAmount = row.querySelector(".net-amount-input").value;
-            return { amount, type, paymentMethod, netAmount };
-          });
+            document.querySelectorAll(`#${tableBodyId} tr`)
+          ).map((row) => ({
+            amount: row.querySelector(".amount-input").value,
+            type: row.querySelector(".type-select").value,
+            paymentMethod: row.querySelector(".payment-method-select").value,
+            netAmount: row.querySelector(".net-amount-input").value,
+          }));
 
-          const tableHtml = rows
-            .map((row) =>
-              createRow(row.amount, row.type, row.paymentMethod, row.netAmount)
-            )
-            .join("");
+          const tableHtml = rows.map(createRow).join("");
           if (currentStateIndex === tableStates.length - 1) {
             tableStates.push(tableHtml);
           } else {
@@ -208,61 +202,89 @@
             tableStates.push(tableHtml);
           }
           currentStateIndex = tableStates.length - 1;
-          updateNavigationButtons();
+          updateNavigationButtons("undo-btn", "redo-btn");
         }
 
-        function updateNavigationButtons() {
-          document.getElementById("undo-btn").disabled = currentStateIndex <= 0;
-          document.getElementById("redo-btn").disabled =
+        function updateNavigationButtons(undoBtnId, redoBtnId) {
+          document.getElementById(undoBtnId).disabled = currentStateIndex <= 0;
+          document.getElementById(redoBtnId).disabled =
             currentStateIndex >= tableStates.length - 1;
         }
 
-        function undo() {
+        function updateTableBodyFromState(tableBodyId) {
+          document.querySelector(`#${tableBodyId}`).innerHTML =
+            tableStates[currentStateIndex];
+        }
+
+        function undo(tableBodyId, undoBtnId, redoBtnId) {
           if (currentStateIndex > 0) {
             currentStateIndex--;
-            document.querySelector("#table-body").innerHTML =
-              tableStates[currentStateIndex];
-            updateTotalNetAmount();
-            updateNavigationButtons();
+            updateTableBodyFromState(tableBodyId);
+            updateTotalNetAmount("net-amount-input", "total-net-amount");
+            updateNavigationButtons(undoBtnId, redoBtnId);
           }
         }
 
-        function redo() {
+        function redo(tableBodyId, undoBtnId, redoBtnId) {
           if (currentStateIndex < tableStates.length - 1) {
             currentStateIndex++;
-            document.querySelector("#table-body").innerHTML =
-              tableStates[currentStateIndex];
-            updateTotalNetAmount();
-            updateNavigationButtons();
+            updateTableBodyFromState(tableBodyId);
+            updateTotalNetAmount("net-amount-input", "total-net-amount");
+            updateNavigationButtons(undoBtnId, redoBtnId);
           }
         }
 
-        function clearTable() {
-          document.getElementById("table-body").innerHTML = "";
-          document.getElementById("total-net-amount").textContent = "0";
-          saveState();
-          updateNavigationButtons();
+        function clearTable(tableBodyId, totalNetAmountId, tableId) {
+          const totalNetAmount = parseFloat(
+            document.getElementById(totalNetAmountId).textContent
+          );
+          if (totalNetAmount === 0) {
+            document.getElementById(tableId).classList.add("hidden"); // Hide the table
+          } else {
+            document.getElementById(tableBodyId).innerHTML = "";
+            document.getElementById(totalNetAmountId).textContent = "0";
+          }
+          saveState(tableBodyId);
+          updateNavigationButtons("undo-btn", "redo-btn");
         }
 
-        function deleteRow(button) {
+        function deleteRow(button, tableBodyId, totalNetAmountId) {
           const row = button.closest("tr");
           row.remove();
-          saveState();
-          updateTotalNetAmount();
+          saveState(tableBodyId);
+          updateTotalNetAmount("net-amount-input", totalNetAmountId);
 
           // Check if the table is empty
-          if (document.querySelectorAll("#table-body tr").length === 0) {
-            clearTable();
+          if (document.querySelectorAll(`#${tableBodyId} tr`).length === 0) {
+            clearTable(tableBodyId, totalNetAmountId, "expense-table");
           }
         }
 
-        function updateTotalNetAmount() {
+        function updateTotalNetAmount(inputClass, totalNetAmountId) {
           let totalNetAmount = 0;
-          document.querySelectorAll(".net-amount-input").forEach((input) => {
-            totalNetAmount += parseFloat(input.value);
+          document.querySelectorAll(`.${inputClass}`).forEach((input) => {
+            totalNetAmount += parseFloat(input.value) || 0;
           });
-          document.getElementById("total-net-amount").textContent =
+          document.getElementById(totalNetAmountId).textContent =
             totalNetAmount;
+        }
+
+        function sync(tableBodyId, tableId, totalNetAmountId) {
+          if (document.getElementById(tableId).classList.contains("hidden")) {
+            document.getElementById(tableId).classList.remove("hidden"); // Show the table
+            renderTable(tableBodyId);
+          }
+        }
+
+        function renderTable(tableBodyId) {
+          if (!initialTableHtml) {
+            initialTableHtml = document.querySelector(
+              `#${tableBodyId}`
+            ).innerHTML;
+          }
+          updateTableBody(tableBodyId, initialData);
+          updateTotalNetAmount("net-amount-input", "total-net-amount");
+          saveState(tableBodyId);
         }
 
         // Public methods
@@ -272,11 +294,13 @@
           redo,
           deleteRow,
           updateTotalNetAmount,
+          sync,
+          clearTable,
         };
       })();
 
       // Initialize the table
-      expenseTracker.renderTable();
+      expenseTracker.renderTable("table-body");
     </script>
   </body>
 </html>
