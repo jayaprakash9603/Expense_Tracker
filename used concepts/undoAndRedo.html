@@ -301,6 +301,17 @@
 
       // Initialize the table
       expenseTracker.renderTable("table-body");
+
+      // Add keyboard shortcuts for undo and redo
+      document.addEventListener("keydown", function (event) {
+        if (event.ctrlKey && event.key === "z") {
+          event.preventDefault();
+          expenseTracker.undo("table-body", "undo-btn", "redo-btn");
+        } else if (event.ctrlKey && event.key === "y") {
+          event.preventDefault();
+          expenseTracker.redo("table-body", "undo-btn", "redo-btn");
+        }
+      });
     </script>
   </body>
 </html>

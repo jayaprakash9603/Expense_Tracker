@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
           id="undo-btn"
           disabled
         ></i>
-        <h2 class="header-date" id="table-date">2024-08-17</h2>
+        <h2 class="header-date" id="table-date">${date}</h2>
         <i
           class="bi bi-arrow-right navigation-icons"
           onclick="expenseTracker.redo()"
