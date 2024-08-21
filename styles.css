@@ -49,7 +49,8 @@ button {
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
+  margin: 0;
+  background-color: #efece6;
 }
 
 table,
@@ -88,7 +89,8 @@ th.sortable:hover {
   color: red; /* Color for descending order */
 }
 .date-section {
-  margin: 20px 0;
+  margin: 50px 0;
+  background-color: #b1bfce;
 }
 
 .header-section .h1-text {
@@ -241,6 +243,17 @@ input[readonly] {
 .popup-menu {
   background-color: #3acfff;
   display: none;
+}
+.table-header-div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #3acfff;
+}
+.navigation-icons {
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin: 0 10px;
 }
 .bi-plus {
   font-size: 50px;
@@ -404,6 +417,7 @@ table thead#reason-modal-table-head {
   position: sticky;
   background-color: black;
   top: 0;
+
   color: white; /* Optional: to ensure text is readable against the black background */
 }
 .reason-modal-content:hover {

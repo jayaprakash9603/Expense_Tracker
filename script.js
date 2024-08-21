@@ -323,10 +323,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const section = document.createElement("div");
     section.className = "date-section";
     section.id = `section-${date}`;
-
-    const title = document.createElement("h2");
-    title.innerText = date;
-    section.appendChild(title);
+    const tableHeaderDiv = document.createElement("div");
+    tableHeaderDiv.className = "table-header-div";
+    tableHeaderDiv.id = "table-header-div";
+    tableHeaderDiv.innerHTML = `<i
+          class="bi bi-arrow-left navigation-icons"
+          onclick="expenseTracker.undo()"
+          id="undo-btn"
+          disabled
+        ></i>
+        <h2 class="header-date" id="table-date">2024-08-17</h2>
+        <i
+          class="bi bi-arrow-right navigation-icons"
+          onclick="expenseTracker.redo()"
+          id="redo-btn"
+          disabled
+        ></i>`;
+    section.appendChild(tableHeaderDiv);
 
     const table = document.createElement("table");
     table.classList.add("my-table");
