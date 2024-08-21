@@ -238,6 +238,10 @@ input[readonly] {
   justify-content: left;
   margin-top: 20px;
 }
+.popup-menu {
+  background-color: #3acfff;
+  display: none;
+}
 .bi-plus {
   font-size: 50px;
 }

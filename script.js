@@ -2,8 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let totalSalary = parseFloat(loadTotalSalaryFromLocalStorage()) || 0;
   let creditDue = parseFloat(loadCreditCardDueFromLocalStorage()) || 0;
   let sortOrderAscending = true;
-  let currentCell;
-  let currentRow;
+  let currentCell = null;
+  let currentRow = null;
   const expensesByDate = loadExpensesFromLocalStorage() || {};
 
   // Initialize DOM elements
@@ -221,20 +221,77 @@ document.addEventListener("DOMContentLoaded", () => {
   //   // addItem();
   // });
 
-  deleteButton.addEventListener("click", () => {
-    deleteItem();
-  });
+  // deleteButton.addEventListener("click", () => {
+  //   deleteItem();
+  // });
+
   // Example functions to be triggered by the buttons
-  function addItem(expense) {
-    alert(`Adding item: `);
-    // Your logic for adding an item goes here
+
+  function updateTotalSalary() {
+    // Initialize total salary
+    let totalSalary = 0;
+
+    // Get all table bodies (assuming they have ids in the format 'tbody-${date}')
+    const tableBodies = document.querySelectorAll('tbody[id^="tbody-"]');
+
+    tableBodies.forEach((tbody) => {
+      let tableTotal = 0;
+
+      // Iterate through rows of the table body
+      tbody.querySelectorAll("tr").forEach((row) => {
+        // Get the net amount from the fifth cell (index 4)
+        const netAmount = parseFloat(row.cells[4].innerText) || 0;
+        tableTotal += netAmount;
+      });
+
+      // Add to the overall total salary
+      totalSalary += tableTotal;
+    });
+
+    // Update the total salary display
+    const totalSalaryElement = document.getElementById("total-salary");
+    if (totalSalaryElement) {
+      totalSalaryElement.innerText = `Total Salary: ${totalSalary.toFixed(2)}`;
+    }
   }
 
-  function deleteItem(expense, row) {
-    alert(`Deleting item: `);
-    // Your logic for deleting an item goes here
-    row.remove(); // Example of removing the row from the table
-  }
+  // Call this function whenever you need to update the total salary
+  // For example, after adding or deleting an item
+  updateTotalSalary();
+
+  //   // Initialize total credit due
+  //   let totalCreditDue = 0;
+
+  //   // Get all table bodies (assuming they have ids in the format 'tbody-${date}')
+  //   const tableBodies = document.querySelectorAll('tbody[id^="tbody-"]');
+
+  //   tableBodies.forEach((tbody) => {
+  //     let tableTotal = 0;
+
+  //     // Iterate through rows of the table body
+  //     tbody.querySelectorAll("tr").forEach((row) => {
+  //       // Get the credit due from the appropriate cell (e.g., index 5)
+  //       const creditDue = parseFloat(row.cells[5].innerText) || 0;
+  //       tableTotal += creditDue;
+  //     });
+
+  //     // Add to the overall total credit due
+  //     totalCreditDue += tableTotal;
+  //   });
+
+  //   // Update the total credit due display
+  //   const totalCreditDueElement = document.getElementById("total-credit-due");
+  //   if (totalCreditDueElement) {
+  //     totalCreditDueElement.innerText = `Total Credit Due: ${totalCreditDue.toFixed(
+  //       2
+  //     )}`;
+  //   }
+  // }
+
+  // Call this function whenever you need to update the total credit due
+  // For example, after adding or deleting an item
+  // updateTotalCreditDue();
+
   function addTotalRow(tbody, totalNetAmount) {
     const totalRow = tbody.insertRow();
     totalRow.insertCell(0).innerText = "";
@@ -277,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     table.innerHTML = `
           <thead>
               <tr class="table-row">
-                  <th data-column="expense" class="sortable" data-order="desc">Expense Name<span class="sort-icon">&#9660;</span></th>
+                  <th data-column="type" class="sortable" data-order="desc">Expense Name<span class="sort-icon">&#9660;</span></th>
                   <th data-column="amount" class="sortable" data-order="desc">Amount<span class="sort-icon">&#9660;</span></th>
                   <th data-column="type" class="sortable" data-order="desc">Type<span class="sort-icon">&#9660;</span></th>
                   <th data-column="paymentMethod" class="sortable" data-order="desc">Payment Method<span class="sort-icon">&#9660;</span></th>
@@ -305,13 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.appendChild(td);
       });
 
-      // // Create the action button cell
       const actionCell = document.createElement("td");
-      // const deleteButton = document.createElement("button");
-      // deleteButton.className = "hero";
-      // deleteButton.onclick = function () {
-      //   expenseTracker.deleteRow(this);
-      // };
+
       const icon = document.createElement("i");
       icon.className = "bi bi-three-dots-vertical iconClass";
       icon.id = "iconID";
@@ -344,44 +396,79 @@ document.addEventListener("DOMContentLoaded", () => {
   function sortTable(table, column, order) {
     const date = table.getAttribute("data-date");
     const tableData = expensesByDate[date];
-    // console.log(tableData);
-    const sortedData = tableData.slice().sort((a, b) => {
+
+    // Helper function to sort based on a specific column
+    function compareValues(a, b, column, order) {
       if (typeof a[column] === "string") {
         return order === "asc"
           ? a[column].localeCompare(b[column])
           : b[column].localeCompare(a[column]);
-      } else {
-        return order === "asc" ? a[column] - b[column] : b[column] - a[column];
+      } else if (!isNaN(a[column]) && !isNaN(b[column])) {
+        return order === "asc"
+          ? parseFloat(a[column]) - parseFloat(b[column])
+          : parseFloat(b[column]) - parseFloat(a[column]);
       }
+      return 0; // If the column is neither a string nor a number
+    }
+
+    const sortedData = tableData.slice().sort((a, b) => {
+      let comparison = compareValues(a, b, column, order);
+
+      // If the primary column values are equal, apply fallback logic
+      if (comparison === 0) {
+        // Check for identical paymentMethod and type across all rows
+        const allSamePaymentMethod = tableData.every(
+          (row) => row.paymentMethod === tableData[0].paymentMethod
+        );
+        const allSameType = tableData.every(
+          (row) => row.type === tableData[0].type
+        );
+
+        // Apply fallback sorting logic if all paymentMethod and type values are the same
+        if (allSamePaymentMethod && allSameType) {
+          const fallbackColumns = [
+            "amount",
+            "expenseName",
+            "netAmount",
+            "type",
+            "paymentMethod",
+          ];
+
+          for (let fallbackColumn of fallbackColumns) {
+            if (fallbackColumn !== column) {
+              comparison = compareValues(a, b, fallbackColumn, order);
+              if (comparison !== 0) break;
+            }
+          }
+        }
+      }
+
+      return comparison;
     });
-    // console.log(sortedData);
+
+    // Re-render the sorted table rows
     renderTableRows(table, sortedData);
-    // Add event listeners for Add and Delete buttons
-    const editButton = document.getElementById("edit-btn");
-    const deleteButton = document.getElementById("delete-btn");
+  }
 
-    editButton.addEventListener("click", () => {
-      // console.log("hello world");
-      addItem();
-    });
-
-    deleteButton.addEventListener("click", () => {
-      deleteItem();
+  function initializeTableSorting(eventType, tableHeaderSelector) {
+    document.addEventListener(eventType, (event) => {
+      const th = event.target.closest(tableHeaderSelector);
+      if (th) {
+        const table = th.closest("table");
+        const column = th.getAttribute("data-column");
+        let order = th.getAttribute("data-order");
+        order = order === "asc" ? "desc" : "asc";
+        th.setAttribute("data-order", order);
+        sortTable(table, column, order);
+        updateSortIcons(table, th, order);
+      }
     });
   }
 
-  document.addEventListener("click", (event) => {
-    const th = event.target.closest("th.sortable");
-    if (th) {
-      const table = th.closest("table");
-      const column = th.getAttribute("data-column");
-      let order = th.getAttribute("data-order");
-      order = order === "asc" ? "desc" : "asc";
-      th.setAttribute("data-order", order);
-      sortTable(table, column, order);
-      updateSortIcons(table, th, order);
-    }
-  });
+  // Usage
+  const clickEventType = "click";
+  const sortableSelector = "th.sortable";
+  initializeTableSorting(clickEventType, sortableSelector);
 
   function updateSortIcons(table, th, order) {
     table.querySelectorAll(".sort-icon").forEach((icon) => {
@@ -518,19 +605,28 @@ document.addEventListener("DOMContentLoaded", () => {
     typeInput.value = "loss";
   }
 
-  function handleDateChange(event) {
-    const selectedDate = new Date(event.target.value);
-    const typeSelect = document.getElementById("type");
+  function initializeDateChangeHandler(inputId, selectId, dateCheckFunction) {
+    function handleDateChange(event) {
+      const selectedDate = new Date(event.target.value);
+      const typeSelect = document.getElementById(selectId);
 
-    if (isSalaryDate(selectedDate)) {
-      typeSelect.value = "gain";
-    } else {
-      typeSelect.value = "loss";
+      if (dateCheckFunction(selectedDate)) {
+        typeSelect.value = "gain";
+      } else {
+        typeSelect.value = "loss";
+      }
     }
+
+    // Attach event listener
+    document
+      .getElementById(inputId)
+      .addEventListener("change", handleDateChange);
   }
 
-  // Attach event listener
-  document.getElementById("date").addEventListener("change", handleDateChange);
+  // Usage
+  const dateElementId = "date";
+  const typeElementId = "type";
+  initializeDateChangeHandler(dateElementId, typeElementId, isSalaryDate);
 
   // Set up event listeners
   // document.querySelectorAll("td").forEach((cell) => {
@@ -543,25 +639,9 @@ document.addEventListener("DOMContentLoaded", () => {
   //   });
   // });
   // Set up event listeners for buttons within cells
-  document.querySelectorAll("td").forEach((cell) => {
-    const button = cell.querySelector("#edit-btn");
-    if (button) {
-      button.addEventListener("click", function () {
-        currentCell = cell; // Set currentCell to the parent cell of the button
-        currentRow = cell.parentElement; // Set currentRow to the parent row of the cell
-        // console.log("Current cell:", currentCell);
-        // console.log("Current row:", currentRow);
-        setModalValues();
-        // console.log("Current cell:", currentCell);
-        // console.log("Current row:", currentRow);
-        // popupMenuDiv.display = "none";
-      });
-    }
-  });
-  /**
-   * Set modal values based on the current cell and row.
-   */
+  // Function to set modal values based on the current cell and row
   function setModalValues() {
+    if (!currentRow) return; // Safety check to ensure currentRow is set
     const cells = Array.from(currentRow.children);
     document.getElementById("editExpenseInput").value =
       cells[0].textContent.trim();
@@ -585,6 +665,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("#editModal").modal("show");
   }
+
+  // Function to save changes
+  function saveChanges() {
+    const expenseName = document.getElementById("editExpenseInput").value;
+    const amount = parseFloat(document.getElementById("editAmountInput").value);
+    const type = document.getElementById("editTypeSelect").value;
+    const paymentMethod = document.getElementById(
+      "editPaymentMethodSelect"
+    ).value;
+    const netAmount = parseFloat(
+      document.getElementById("editNetAmountInput").value
+    );
+
+    if (currentCell && currentRow) {
+      const rowIndex = parseInt(
+        document.getElementById("editRowIndex").value,
+        10
+      );
+      const date = currentRow
+        .closest(".date-section")
+        .querySelector("h2")
+        .textContent.trim();
+
+      const cells = Array.from(currentRow.children);
+
+      // Update cells in the table
+      cells[0].textContent = expenseName;
+      cells[1].textContent = amount;
+      cells[2].textContent = type;
+      cells[3].textContent = paymentMethod;
+      cells[4].textContent = netAmount;
+
+      // Update global data
+      if (expensesByDate[date]) {
+        expensesByDate[date][rowIndex] = {
+          expenseName,
+          amount,
+          type,
+          paymentMethod,
+          netAmount,
+        };
+
+        updateSummary(); // Update UI summary
+        saveExpensesToLocalStorage(); // Save updated data to local storage
+      }
+
+      // Close the modal
+      $("#editModal").modal("hide");
+
+      // Reset currentCell and currentRow after saving
+      currentCell = null;
+      currentRow = null;
+    }
+  }
+
+  // Function to reattach event listeners to all edit buttons
+  function attachEditButtonListeners() {
+    document.querySelectorAll("td").forEach((cell) => {
+      const button = cell.querySelector("#edit-btn");
+      if (button) {
+        button.addEventListener("click", function () {
+          currentCell = cell; // Set currentCell to the parent cell of the button
+          currentRow = cell.parentElement; // Set currentRow to the parent row of the cell
+          setModalValues(); // Set values in the modal
+        });
+      }
+    });
+  }
+
+  // Call the function to ensure event listeners are attached when the document is ready
+  attachEditButtonListeners();
+
   /**
    * Update Type and Net Amount based on the current inputs.
    */
@@ -647,78 +799,6 @@ document.addEventListener("DOMContentLoaded", () => {
   /**
    * Save changes to the table and close the modal.
    */
-  function saveChanges() {
-    const expenseName = document.getElementById("editExpenseInput").value;
-    const amount = parseFloat(document.getElementById("editAmountInput").value);
-    const type = document.getElementById("editTypeSelect").value;
-    const paymentMethod = document.getElementById(
-      "editPaymentMethodSelect"
-    ).value;
-    const netAmount = parseFloat(
-      document.getElementById("editNetAmountInput").value
-    );
-    const date = currentRow.parentElement
-      .closest(".date-section")
-      .querySelector("h2")
-      .textContent.trim();
-    // console.log(date);
-    if (currentCell) {
-      const rowIndex = parseInt(
-        document.getElementById("editRowIndex").value,
-        10
-      );
-      const cellIndex = parseInt(
-        document.getElementById("editCellIndex").value,
-        10
-      );
-      const row = currentRow;
-      const cells = Array.from(row.children);
-      console.log(row + "" + cells);
-      console.log(expenseName);
-      // Update cells in the table
-      cells[0].textContent = expenseName;
-      cells[1].textContent = amount;
-      cells[2].textContent = type;
-      cells[3].textContent = paymentMethod;
-      cells[4].textContent = netAmount;
-      // **Update global data**
-      if (expensesByDate[date]) {
-        expensesByDate[date][rowIndex] = {
-          expenseName,
-          amount,
-          type,
-          paymentMethod,
-          netAmount,
-        };
-        // **Recalculate totalSalary and creditDue**
-        totalSalary = 0;
-        creditDue = 0;
-
-        Object.keys(expensesByDate).forEach((date) => {
-          expensesByDate[date].forEach((expense) => {
-            if (expense.paymentMethod === "creditNeedToPaid") {
-              creditDue += expense.amount;
-              totalSalary -= expense.amount;
-            } else if (expense.paymentMethod === "creditPaid") {
-              creditDue -= expense.amount;
-            } else {
-              totalSalary += expense.netAmount;
-            }
-          });
-        });
-
-        updateSummary(); // **Update UI summary**
-        saveExpensesToLocalStorage(); // **Save updated data to local storage**
-        saveTotalSalaryToLocalStorage(); // Save updated total salary
-        saveCreditCardDueToLocalStorage();
-        updateUI(); // Save updated credit due
-        // console.log("here");
-      }
-
-      $(editModal).modal("hide");
-      // popupMenu.display = "none";
-    }
-  }
 
   document
     .getElementById("editAmountInput")
@@ -968,6 +1048,95 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("change", () =>
         searchExpenses(searchColumnId, searchInputId, dateInputId, tableId)
       );
+  }
+  // Function to delete an expense item
+  function deleteItem(row, date) {
+    // Extract the expense name from the row to identify the correct expense to delete
+    const expenseName = row.cells[0].innerText;
+
+    // Remove the expense from the data source
+    const expenseIndex = expensesByDate[date].findIndex(
+      (expense) => expense.expenseName === expenseName
+    );
+    if (expenseIndex !== -1) {
+      expensesByDate[date].splice(expenseIndex, 1);
+
+      // Update local storage
+      localStorage.setItem("expensesByDate", JSON.stringify(expensesByDate));
+      updateTotalSalary();
+      localStorage.setItem("creditDue", creditDue);
+
+      // Update the UI
+      updateDateSection(date);
+    }
+  }
+
+  // Update the event listener for delete buttons
+  function addDeleteEventListeners(date) {
+    const deleteButtons = document.querySelectorAll(
+      `table[data-date='${date}'] .delete-btn`
+    );
+
+    deleteButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const row = event.target.closest("tr");
+        deleteItem(row, date);
+      });
+    });
+  }
+
+  // Ensure to call this function after updating the table content
+  function updateDateSection(date) {
+    const tbody = document.getElementById(`tbody-${date}`);
+    if (!tbody) return; // Check if tbody exists
+
+    const table = document.querySelector(`table[data-date='${date}']`);
+
+    tbody.innerHTML = "";
+    let totalNetAmount = 0;
+
+    expensesByDate[date].forEach((expense) => {
+      const row = tbody.insertRow();
+      row.insertCell(0).innerText = expense.expenseName;
+      row.insertCell(1).innerText = expense.amount;
+      row.insertCell(2).innerText = expense.type;
+      row.insertCell(3).innerText = expense.paymentMethod;
+      row.insertCell(4).innerText = expense.netAmount;
+
+      const actionCell = row.insertCell(5);
+
+      // Create icon element
+      const icon = document.createElement("i");
+      icon.className = "bi bi-three-dots-vertical iconClass";
+      icon.id = "iconID";
+
+      // Create popup menu element
+      const popupMenu = document.createElement("div");
+      popupMenu.className = "popup-menu";
+      popupMenu.id = "popup-menu";
+      popupMenu.style.display = "none"; // Hide by default
+      popupMenu.innerHTML = `
+      <button class="edit-btn" id="edit-btn">Edit</button>
+      <button class="delete-btn" id="delete-btn">Delete</button>
+    `;
+
+      // Add event listener to toggle popup menu
+      icon.addEventListener("click", () => {
+        popupMenu.style.display =
+          popupMenu.style.display === "block" ? "none" : "block";
+      });
+
+      // Append elements to action cell
+      actionCell.appendChild(icon);
+      actionCell.appendChild(popupMenu);
+
+      totalNetAmount += expense.netAmount;
+    });
+
+    addTotalRow(tbody, totalNetAmount);
+    addDeleteEventListeners(date);
+    attachEditButtonListeners();
+    // updateTotalSalary(); // Add delete event listeners after updating the table
   }
 
   // Initialize display settings and data

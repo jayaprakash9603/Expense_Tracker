@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Storage with Upload and Load</title>
+    <style>
+      #imageGallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      #imageGallery img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image Storage with IndexedDB</h1>
+    <input type="file" id="imageInput" multiple />
+    <button id="uploadBtn">Upload Images</button>
+    <button onclick="loadImages()">Load Images</button>
+    <div id="imageGallery"></div>
+
+    <script>
+      let db;
+
+      // Open (or create) the IndexedDB
+      const request = indexedDB.open("imageStorageDB", 1);
+
+      request.onupgradeneeded = function (event) {
+        db = event.target.result;
+        const objectStore = db.createObjectStore("images", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+        objectStore.createIndex("imageName", "imageName", { unique: false });
+      };
+
+      request.onsuccess = function (event) {
+        db = event.target.result;
+      };
+
+      request.onerror = function (event) {
+        console.error("Database error:", event.target.errorCode);
+      };
+
+      // Upload and store images
+      document
+        .getElementById("uploadBtn")
+        .addEventListener("click", function () {
+          const files = document.getElementById("imageInput").files;
+          const transaction = db.transaction(["images"], "readwrite");
+          const objectStore = transaction.objectStore("images");
+
+          for (const file of files) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const imageData = event.target.result;
+              const imageObject = { imageName: file.name, imageData };
+              objectStore.add(imageObject);
+            };
+            reader.readAsDataURL(file); // Convert file to base64
+          }
+        });
+
+      // Load images from IndexedDB
+      function loadImages() {
+        const transaction = db.transaction(["images"], "readonly");
+        const objectStore = transaction.objectStore("images");
+        const request = objectStore.getAll();
+
+        request.onsuccess = function (event) {
+          const images = event.target.result;
+          const gallery = document.getElementById("imageGallery");
+          gallery.innerHTML = ""; // Clear existing images
+
+          if (images.length === 0) {
+            gallery.innerHTML = "<p>No images stored.</p>";
+          } else {
+            images.forEach((image) => {
+              const imgElement = document.createElement("img");
+              imgElement.src = image.imageData;
+              imgElement.alt = image.imageName;
+              gallery.appendChild(imgElement);
+            });
+          }
+        };
+      }
+    </script>
+  </body>
+</html>
